@@ -2,7 +2,6 @@
 
 use Illuminate\Support\Facades\Route;
 
-Route::redirect('/', '/books');
 
 // ゲストも閲覧可能
 Route::get('/books', fn () => '書籍一覧（準備中）')
