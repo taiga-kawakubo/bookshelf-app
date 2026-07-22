@@ -13,12 +13,13 @@ Route::get('/ranking', fn () => 'ランキング（準備中）')
 
 
 
-
-
 // 認証済みユーザーのみ
 Route::middleware('auth')->group(function () {
-    Route::get('/books/create', fn () => '書籍登録（準備中）')
+    Route::get('/books/create', [BookController::class,'create'])
         ->name('books.create');
+
+    Route::post('/books', [BookController::class,'store'])
+        ->name('books.store');
     
     Route::post('/books/{book}', fn () => '書籍編集（準備中）')
         ->whereNumber('book')
