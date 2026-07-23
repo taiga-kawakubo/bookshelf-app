@@ -6,19 +6,19 @@ use App\Actions\Fortify\CreateNewUser;
 use App\Actions\Fortify\ResetUserPassword;
 use App\Actions\Fortify\UpdateUserPassword;
 use App\Actions\Fortify\UpdateUserProfileInformation;
+use App\Http\Responses\LoginResponse;
+use App\Http\Responses\LogoutResponse;
+use App\Http\Responses\RegisterResponse;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Str;
 use Laravel\Fortify\Actions\RedirectIfTwoFactorAuthenticatable;
-use Laravel\Fortify\Fortify;
-use App\Http\Responses\RegisterResponse;
-use Laravel\Fortify\Contracts\RegisterResponse as RegisterResponseContract;
-use App\Http\Responses\LogoutResponse;
-use Laravel\Fortify\Contracts\LogoutResponse as LogoutResponseContract;
-use App\Http\Responses\LoginResponse;
 use Laravel\Fortify\Contracts\LoginResponse as LoginResponseContract;
+use Laravel\Fortify\Contracts\LogoutResponse as LogoutResponseContract;
+use Laravel\Fortify\Contracts\RegisterResponse as RegisterResponseContract;
+use Laravel\Fortify\Fortify;
 
 class FortifyServiceProvider extends ServiceProvider
 {
@@ -30,7 +30,7 @@ class FortifyServiceProvider extends ServiceProvider
         $this->app->singleton(
             LoginResponseContract::class,
             LoginResponse::class
-    );
+        );
     }
 
     /**
@@ -66,13 +66,13 @@ class FortifyServiceProvider extends ServiceProvider
             return view('auth.register');
         });
 
-        //会員登録後にログイン画面に遷移する
+        // 会員登録後にログイン画面に遷移する
         $this->app->singleton(
             RegisterResponseContract::class,
             RegisterResponse::class
         );
 
-        //ログアウト後にログイン画面に遷移する
+        // ログアウト後にログイン画面に遷移する
         $this->app->singleton(
             LogoutResponseContract::class,
             LogoutResponse::class

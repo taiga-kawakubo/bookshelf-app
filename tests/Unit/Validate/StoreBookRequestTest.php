@@ -2,14 +2,14 @@
 
 namespace Tests\Unit\Validate;
 
-use Tests\TestCase;
 use App\Http\Requests\StoreBookRequest;
 use App\Models\Genre;
 use App\Models\User;
 use Database\Seeders\GenreSeeder;
-use Illuminate\Support\Facades\Validator;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Validator as ValidationValidator;
+use Tests\TestCase;
 
 class StoreBookRequestTest extends TestCase
 {
@@ -30,7 +30,7 @@ class StoreBookRequestTest extends TestCase
      */
     private function makeValidator(array $data): ValidationValidator
     {
-        $request = new StoreBookRequest();
+        $request = new StoreBookRequest;
 
         return Validator::make(
             $data,
@@ -66,7 +66,7 @@ class StoreBookRequestTest extends TestCase
         $this->assertFalse($validator->fails());
     }
 
-    public function test_説明と画像URLが空でもバリデーションを通過する(): void
+    public function test_説明と画像_ur_lが空でもバリデーションを通過する(): void
     {
         $validator = $this->makeValidator(
             $this->validData([
@@ -144,7 +144,6 @@ class StoreBookRequestTest extends TestCase
         );
     }
 
-
     public function test_isbnが重複している場合はバリデーションエラーになる(): void
     {
         $user = User::factory()->create();
@@ -219,7 +218,7 @@ class StoreBookRequestTest extends TestCase
         );
     }
 
-    public function test_image_urlがURL形式でない場合はバリデーションエラーになる(): void
+    public function test_image_urlが_ur_l形式でない場合はバリデーションエラーになる(): void
     {
         $validator = $this->makeValidator(
             $this->validData([
@@ -233,7 +232,7 @@ class StoreBookRequestTest extends TestCase
         );
     }
 
-    public function test_画像URLが文字列でない場合はバリデーションエラーになる(): void
+    public function test_画像_ur_lが文字列でない場合はバリデーションエラーになる(): void
     {
         $validator = $this->makeValidator(
             $this->validData([
@@ -279,7 +278,7 @@ class StoreBookRequestTest extends TestCase
         );
     }
 
-    public function test_ジャンルIDが整数でない場合はバリデーションエラーになる(): void
+    public function test_ジャンル_i_dが整数でない場合はバリデーションエラーになる(): void
     {
         $validator = $this->makeValidator(
             $this->validData([
@@ -402,10 +401,10 @@ class StoreBookRequestTest extends TestCase
         );
     }
 
-    public function test_画像URLが512文字の場合はバリデーションを通過する(): void
+    public function test_画像_ur_lが512文字の場合はバリデーションを通過する(): void
     {
         $baseUrl = 'https://example.com/';
-        $imageUrl = $baseUrl . str_repeat(
+        $imageUrl = $baseUrl.str_repeat(
             'a',
             512 - strlen($baseUrl)
         );
@@ -421,10 +420,10 @@ class StoreBookRequestTest extends TestCase
         $this->assertFalse($validator->fails());
     }
 
-    public function test_画像URLが513文字の場合はバリデーションエラーになる(): void
+    public function test_画像_ur_lが513文字の場合はバリデーションエラーになる(): void
     {
         $baseUrl = 'https://example.com/';
-        $imageUrl = $baseUrl . str_repeat(
+        $imageUrl = $baseUrl.str_repeat(
             'a',
             513 - strlen($baseUrl)
         );

@@ -2,16 +2,16 @@
 
 namespace Tests\Unit\Validate;
 
-use Tests\TestCase;
 use App\Http\Requests\UpdateBookRequest;
-use App\Models\Genre;
 use App\Models\Book;
-use Illuminate\Routing\Route;
+use App\Models\Genre;
 use App\Models\User;
 use Database\Seeders\GenreSeeder;
-use Illuminate\Support\Facades\Validator;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Routing\Route;
+use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Validator as ValidationValidator;
+use Tests\TestCase;
 
 class UpdateBookRequestTest extends TestCase
 {
@@ -45,14 +45,14 @@ class UpdateBookRequestTest extends TestCase
      */
     private function makeValidator(array $data, Book $book): ValidationValidator
     {
-        $request = new UpdateBookRequest();
+        $request = new UpdateBookRequest;
 
-        //UpdateBookRequest内の$this->route('book')で更新対象書籍を取得できるようにする。
-        $route = new Route(['PUT'], 'books/{book}',[]);
+        // UpdateBookRequest内の$this->route('book')で更新対象書籍を取得できるようにする。
+        $route = new Route(['PUT'], 'books/{book}', []);
         $route->bind($request);
         $route->setParameter('book', $book);
 
-        $request->setRouteResolver(function()use($route){
+        $request->setRouteResolver(function () use ($route) {
             return $route;
         });
 
@@ -82,16 +82,16 @@ class UpdateBookRequestTest extends TestCase
     }
 
     public function test_全ての項目が入力されていればバリデーションを通過する(): void
-{
-    $validator = $this->makeValidator(
-        $this->validData(),
-        $this->book
-    );
+    {
+        $validator = $this->makeValidator(
+            $this->validData(),
+            $this->book
+        );
 
-    $this->assertFalse($validator->fails());
-}
+        $this->assertFalse($validator->fails());
+    }
 
-    public function test_説明と画像URLが空でもバリデーションを通過する(): void
+    public function test_説明と画像_ur_lが空でもバリデーションを通過する(): void
     {
         $validator = $this->makeValidator(
             $this->validData([
@@ -213,7 +213,6 @@ class UpdateBookRequestTest extends TestCase
         );
     }
 
-
     public function test_更新対象自身のisbnはそのまま使用できる(): void
     {
         $validator = $this->makeValidator(
@@ -252,8 +251,6 @@ class UpdateBookRequestTest extends TestCase
         );
     }
 
-
-
     public function test_published_dateが日付形式でない場合はバリデーションエラーになる(): void
     {
         $validator = $this->makeValidator(
@@ -269,7 +266,7 @@ class UpdateBookRequestTest extends TestCase
         );
     }
 
-    public function test_image_urlがURL形式でない場合はバリデーションエラーになる(): void
+    public function test_image_urlが_ur_l形式でない場合はバリデーションエラーになる(): void
     {
         $validator = $this->makeValidator(
             $this->validData([
@@ -284,7 +281,7 @@ class UpdateBookRequestTest extends TestCase
         );
     }
 
-    public function test_画像URLが文字列でない場合はバリデーションエラーになる(): void
+    public function test_画像_ur_lが文字列でない場合はバリデーションエラーになる(): void
     {
         $validator = $this->makeValidator(
             $this->validData([
@@ -336,7 +333,7 @@ class UpdateBookRequestTest extends TestCase
         );
     }
 
-    public function test_ジャンルIDが整数でない場合はバリデーションエラーになる(): void
+    public function test_ジャンル_i_dが整数でない場合はバリデーションエラーになる(): void
     {
         $validator = $this->makeValidator(
             $this->validData([
@@ -468,11 +465,11 @@ class UpdateBookRequestTest extends TestCase
         );
     }
 
-    public function test_画像URLが512文字の場合はバリデーションを通過する(): void
+    public function test_画像_ur_lが512文字の場合はバリデーションを通過する(): void
     {
         $baseUrl = 'https://example.com/';
 
-        $imageUrl = $baseUrl . str_repeat(
+        $imageUrl = $baseUrl.str_repeat(
             'a',
             512 - strlen($baseUrl)
         );
@@ -492,11 +489,11 @@ class UpdateBookRequestTest extends TestCase
         $this->assertFalse($validator->fails());
     }
 
-    public function test_画像URLが513文字の場合はバリデーションエラーになる(): void
+    public function test_画像_ur_lが513文字の場合はバリデーションエラーになる(): void
     {
         $baseUrl = 'https://example.com/';
 
-        $imageUrl = $baseUrl . str_repeat(
+        $imageUrl = $baseUrl.str_repeat(
             'a',
             513 - strlen($baseUrl)
         );
@@ -518,9 +515,4 @@ class UpdateBookRequestTest extends TestCase
             $validator->errors()->has('image_url')
         );
     }
-
-
-
-
-
 }

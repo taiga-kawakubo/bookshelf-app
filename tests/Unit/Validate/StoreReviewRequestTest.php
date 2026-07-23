@@ -14,7 +14,7 @@ class StoreReviewRequestTest extends TestCase
      */
     private function makeValidator(array $data): ValidationValidator
     {
-        $request = new StoreReviewRequest();
+        $request = new StoreReviewRequest;
 
         return Validator::make(
             $data,

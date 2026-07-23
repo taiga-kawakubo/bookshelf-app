@@ -11,7 +11,8 @@ use Illuminate\View\View;
 
 class ReviewController extends Controller
 {
-    public function store(StoreReviewRequest $request, Book $book): RedirectResponse {
+    public function store(StoreReviewRequest $request, Book $book): RedirectResponse
+    {
         $validated = $request->validated();
         $userId = $request->user()->id;
 
@@ -39,13 +40,12 @@ class ReviewController extends Controller
             ->with('success', 'レビューを投稿しました。');
     }
 
-
     public function edit(Review $review): View
     {
         $this->authorize('update', $review);
+
         return view('reviews.edit', compact('review'));
     }
-
 
     public function update(UpdateReviewRequest $request, Review $review): RedirectResponse
     {
@@ -61,7 +61,6 @@ class ReviewController extends Controller
             ->route('books.show', $review->book)
             ->with('success', 'レビューを更新しました。');
     }
-
 
     public function destroy(Review $review): RedirectResponse
     {

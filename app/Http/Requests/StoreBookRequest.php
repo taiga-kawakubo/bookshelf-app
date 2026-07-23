@@ -2,8 +2,8 @@
 
 namespace App\Http\Requests;
 
+use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
-use \Illuminate\Contracts\Validation\ValidationRule;
 
 class StoreBookRequest extends FormRequest
 {
@@ -24,7 +24,7 @@ class StoreBookRequest extends FormRequest
     {
         return [
             'title' => ['required', 'string', 'max:255'],
-            'author'=> ['required', 'string', 'max:255'],
+            'author' => ['required', 'string', 'max:255'],
             'isbn' => ['required', 'digits:13', 'unique:books,isbn'],
             'published_date' => ['required', 'date'],
             'description' => ['nullable', 'string', 'max:2000'],
@@ -39,8 +39,7 @@ class StoreBookRequest extends FormRequest
      *
      * @return array<string, string>
      */
-
-    public function messages():array
+    public function messages(): array
     {
         return [
             'title.required' => 'タイトルを入力してください。',

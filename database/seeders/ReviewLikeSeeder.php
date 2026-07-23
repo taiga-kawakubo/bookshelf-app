@@ -24,7 +24,7 @@ class ReviewLikeSeeder extends Seeder
             $likeCount = $index % 4;
 
             $likerIds = $userIds
-                ->reject(function ($userId) use ($review){
+                ->reject(function ($userId) use ($review) {
                     return (int) $userId === (int) $review->user_id;
                 })
                 ->values()

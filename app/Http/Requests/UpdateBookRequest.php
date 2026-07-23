@@ -2,8 +2,8 @@
 
 namespace App\Http\Requests;
 
+use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
-use \Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Validation\Rule;
 
 class UpdateBookRequest extends FormRequest
@@ -46,8 +46,7 @@ class UpdateBookRequest extends FormRequest
      *
      * @return array<string, string>
      */
-
-    public function messages():array
+    public function messages(): array
     {
         return [
             'title.required' => 'タイトルを入力してください。',

@@ -1,83 +1,87 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\BookController;
+use App\Http\Controllers\GenreController;
 use App\Http\Controllers\ReviewController;
-
+use Illuminate\Support\Facades\Route;
 
 // ゲストも閲覧可能
-Route::get('/books',[BookController::class,'index'])
+Route::get('/books', [BookController::class, 'index'])
     ->name('books.index');
 
 Route::get('/ranking', fn () => 'ランキング（準備中）')
-        ->name('ranking.index');
-
-
+    ->name('ranking.index');
 
 // 認証済みユーザーのみ
 Route::middleware('auth')->group(function () {
-    Route::get('/books/create', [BookController::class,'create'])
+    Route::get('/books/create', [BookController::class, 'create'])
         ->name('books.create');
 
-    Route::post('/books', [BookController::class,'store'])
+    Route::post('/books', [BookController::class, 'store'])
         ->name('books.store');
-    
-    Route::get('/books/{book}/edit', [BookController::class,'edit'])
+
+    Route::get('/books/{book}/edit', [BookController::class, 'edit'])
         ->whereNumber('book')
         ->name('books.edit');
-    
-    Route::put('/books/{book}', [BookController::class,'update'])
+
+    Route::put('/books/{book}', [BookController::class, 'update'])
         ->whereNumber('book')
         ->name('books.update');
 
-    Route::delete('/books/{book}', [BookController::class,'destroy'])
+    Route::delete('/books/{book}', [BookController::class, 'destroy'])
         ->whereNumber('book')
         ->name('books.destroy');
-    
 
-
-    Route::post('/books/{book}/reviews', [ReviewController::class,'store'])
+    Route::post('/books/{book}/reviews', [ReviewController::class, 'store'])
         ->whereNumber('book')
         ->name('reviews.store');
 
-    Route::get('/reviews/{review}/edit', [ReviewController::class,'edit'])
+    Route::get('/reviews/{review}/edit', [ReviewController::class, 'edit'])
         ->whereNumber('review')
         ->name('reviews.edit');
-    
-    Route::put('/reviews/{review}', [ReviewController::class,'update'])
+
+    Route::put('/reviews/{review}', [ReviewController::class, 'update'])
         ->whereNumber('review')
         ->name('reviews.update');
 
-    Route::delete('/reviews/{review}',[ReviewController::class,'destroy'])
+    Route::delete('/reviews/{review}', [ReviewController::class, 'destroy'])
         ->whereNumber('review')
         ->name('reviews.destroy');
-    
-        
 
     Route::post('/books/{book}/reviews/like', fn () => 'レビューにいいねボタンをおす（準備中）')
         ->whereNumber('book')
         ->name('reviews.like');
-    
 
-
-    Route::get('/genres', fn () => 'ジャンル一覧（準備中）')
+    Route::get('/genres', [GenreController::class, 'index'])
         ->name('genres.index');
-    
 
+    Route::get('/genres/{genre}', [GenreController::class, 'show'])
+        ->name('genres.show');
+
+    Route::get('/genres/create', fn () => 'ジャンル作成画面（準備中）')
+        ->name('genres.create');
+
+    Route::post('/genres', fn () => 'ジャンル作成（準備中）')
+        ->name('genres.store');
+
+    Route::get('/genres/{genre}/edit', fn () => 'ジャンル編集画面（準備中）')
+        ->name('genres.edit');
+
+    Route::put('/genres/{genre}', fn () => 'ジャンル更新（準備中）')
+        ->name('genres.update');
+
+    Route::delete('/genres/{genre}', fn () => 'ジャンル削除（準備中）')
+        ->name('genres.destroy');
 
     Route::get('/favorites', fn () => 'お気に入り一覧（準備中）')
         ->name('favorites.index');
 
     Route::post('/favorites', fn () => 'お気に入り登録（準備中）')
         ->name('favorites.toggle');
-    
 
-
-    
 });
 
 // 可変パラメータを持つRouteは固定Routeより後
-    Route::get('/books/{book}', [BookController::class,'show'])
+Route::get('/books/{book}', [BookController::class, 'show'])
     ->whereNumber('book')
     ->name('books.show');
-
