@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\BookController;
+use App\Http\Controllers\ReviewController;
 
 
 // ゲストも閲覧可能
@@ -33,24 +34,36 @@ Route::middleware('auth')->group(function () {
         ->whereNumber('book')
         ->name('books.destroy');
     
-    Route::post('/books/{book}/reviews', fn () => 'レビュー作成（準備中）')
+
+
+    Route::post('/books/{book}/reviews', [ReviewController::class,'store'])
         ->whereNumber('book')
         ->name('reviews.store');
-    
-    Route::put('/books/{book}/reviews', fn () => 'レビュー編集（準備中）')
-        ->whereNumber('book')
+
+    Route::get('/reviews/{review}/edit', [ReviewController::class,'edit'])
+        ->whereNumber('review')
         ->name('reviews.edit');
     
-    Route::delete('/books/{book}/reviews', fn () => 'レビュー削除（準備中）')
-        ->whereNumber('book')
+    Route::put('/reviews/{review}', [ReviewController::class,'update'])
+        ->whereNumber('review')
+        ->name('reviews.update');
+
+    Route::delete('/reviews/{review}',[ReviewController::class,'destroy'])
+        ->whereNumber('review')
         ->name('reviews.destroy');
     
+        
+
     Route::post('/books/{book}/reviews/like', fn () => 'レビューにいいねボタンをおす（準備中）')
         ->whereNumber('book')
         ->name('reviews.like');
     
+
+
     Route::get('/genres', fn () => 'ジャンル一覧（準備中）')
         ->name('genres.index');
+    
+
 
     Route::get('/favorites', fn () => 'お気に入り一覧（準備中）')
         ->name('favorites.index');

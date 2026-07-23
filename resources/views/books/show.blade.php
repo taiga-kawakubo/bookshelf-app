@@ -12,6 +12,14 @@
                     {{ session('success') }}
                 </div>
             @endif
+            @if (session('error'))
+                <div
+                    role="alert"
+                    class="mb-4 rounded border border-red-300 bg-red-50 px-4 py-3 text-red-700"
+                >
+                    {{ session('error') }}
+                </div>
+            @endif
             <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                 <div class="p-6 text-gray-900">
                     <div class="flex flex-col md:flex-row gap-6">
