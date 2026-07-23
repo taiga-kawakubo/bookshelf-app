@@ -21,11 +21,15 @@ Route::middleware('auth')->group(function () {
     Route::post('/books', [BookController::class,'store'])
         ->name('books.store');
     
-    Route::post('/books/{book}', fn () => '書籍編集（準備中）')
+    Route::get('/books/{book}/edit', [BookController::class,'edit'])
         ->whereNumber('book')
         ->name('books.edit');
+    
+    Route::put('/books/{book}', [BookController::class,'update'])
+        ->whereNumber('book')
+        ->name('books.update');
 
-    Route::delete('/books/{book}', fn () => '書籍削除（準備中）')
+    Route::delete('/books/{book}', [BookController::class,'destroy'])
         ->whereNumber('book')
         ->name('books.destroy');
     

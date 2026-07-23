@@ -3,34 +3,58 @@
 namespace Tests\Unit\Validate;
 
 use Tests\TestCase;
-use App\Http\Requests\StoreBookRequest;
+use App\Http\Requests\UpdateBookRequest;
 use App\Models\Genre;
+use App\Models\Book;
+use Illuminate\Routing\Route;
 use App\Models\User;
 use Database\Seeders\GenreSeeder;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Validation\Validator as ValidationValidator;
 
-class StoreBookRequestTest extends TestCase
+class UpdateBookRequestTest extends TestCase
 {
     use RefreshDatabase;
 
+    private Book $book;
+
     /**
-     * 検証に必要なジャンルを作成
+     * 検証に必要なジャンルと更新対象書籍を作成
      */
     protected function setUp(): void
     {
         parent::setUp();
 
         $this->seed(GenreSeeder::class);
+
+        $user = User::factory()->create();
+
+        $this->book = $user->books()->create([
+            'title' => '更新対象書籍',
+            'author' => '更新前の著者',
+            'isbn' => '9999999999999',
+            'published_date' => '2026-07-01',
+            'description' => '更新前の説明です。',
+            'image_url' => 'https://example.com/old-book.jpg',
+        ]);
     }
 
     /**
-     * StoreBookRequestのルールでバリデーターを作成
+     * UpdateBookRequestのルールでバリデーターを作成
      */
-    private function makeValidator(array $data): ValidationValidator
+    private function makeValidator(array $data, Book $book): ValidationValidator
     {
-        $request = new StoreBookRequest();
+        $request = new UpdateBookRequest();
+
+        //UpdateBookRequest内の$this->route('book')で更新対象書籍を取得できるようにする。
+        $route = new Route(['PUT'], 'books/{book}',[]);
+        $route->bind($request);
+        $route->setParameter('book', $book);
+
+        $request->setRouteResolver(function()use($route){
+            return $route;
+        });
 
         return Validator::make(
             $data,
@@ -58,13 +82,14 @@ class StoreBookRequestTest extends TestCase
     }
 
     public function test_全ての項目が入力されていればバリデーションを通過する(): void
-    {
-        $validator = $this->makeValidator(
-            $this->validData()
-        );
+{
+    $validator = $this->makeValidator(
+        $this->validData(),
+        $this->book
+    );
 
-        $this->assertFalse($validator->fails());
-    }
+    $this->assertFalse($validator->fails());
+}
 
     public function test_説明と画像URLが空でもバリデーションを通過する(): void
     {
@@ -72,7 +97,8 @@ class StoreBookRequestTest extends TestCase
             $this->validData([
                 'description' => null,
                 'image_url' => null,
-            ])
+            ]),
+            $this->book
         );
 
         $this->assertFalse($validator->fails());
@@ -93,7 +119,10 @@ class StoreBookRequestTest extends TestCase
 
             unset($data[$field]);
 
-            $validator = $this->makeValidator($data);
+            $validator = $this->makeValidator(
+                $data,
+                $this->book
+            );
 
             $this->assertTrue($validator->fails());
             $this->assertTrue(
@@ -106,8 +135,9 @@ class StoreBookRequestTest extends TestCase
     {
         $validator = $this->makeValidator(
             $this->validData([
-                'title' => ['テスト書籍'],
-            ])
+                'title' => ['更新後のタイトル'],
+            ]),
+            $this->book
         );
 
         $this->assertTrue($validator->fails());
@@ -120,8 +150,9 @@ class StoreBookRequestTest extends TestCase
     {
         $validator = $this->makeValidator(
             $this->validData([
-                'author' => ['テスト著者'],
-            ])
+                'author' => ['更新後の著者'],
+            ]),
+            $this->book
         );
 
         $this->assertTrue($validator->fails());
@@ -134,39 +165,14 @@ class StoreBookRequestTest extends TestCase
     {
         $validator = $this->makeValidator(
             $this->validData([
-                'description' => ['テスト用の書籍説明です。'],
-            ])
+                'description' => ['更新後の説明'],
+            ]),
+            $this->book
         );
 
         $this->assertTrue($validator->fails());
         $this->assertTrue(
             $validator->errors()->has('description')
-        );
-    }
-
-
-    public function test_isbnが重複している場合はバリデーションエラーになる(): void
-    {
-        $user = User::factory()->create();
-
-        $book = $user->books()->create([
-            'title' => 'テスト書籍',
-            'author' => 'テスト著者',
-            'isbn' => '1111111111111',
-            'published_date' => '2026-07-17',
-            'description' => 'テスト用の書籍説明です。',
-            'image_url' => 'https://example.com/book.jpg',
-        ]);
-
-        $validator = $this->makeValidator(
-            $this->validData([
-                'isbn' => $book->isbn,
-            ])
-        );
-
-        $this->assertTrue($validator->fails());
-        $this->assertTrue(
-            $validator->errors()->has('isbn')
         );
     }
 
@@ -181,7 +187,8 @@ class StoreBookRequestTest extends TestCase
             $validator = $this->makeValidator(
                 $this->validData([
                     'isbn' => $isbn,
-                ])
+                ]),
+                $this->book
             );
 
             $this->assertTrue($validator->fails());
@@ -196,7 +203,8 @@ class StoreBookRequestTest extends TestCase
         $validator = $this->makeValidator(
             $this->validData([
                 'isbn' => 'abcdefghijklm',
-            ])
+            ]),
+            $this->book
         );
 
         $this->assertTrue($validator->fails());
@@ -205,12 +213,54 @@ class StoreBookRequestTest extends TestCase
         );
     }
 
+
+    public function test_更新対象自身のisbnはそのまま使用できる(): void
+    {
+        $validator = $this->makeValidator(
+            $this->validData([
+                'isbn' => $this->book->isbn,
+            ]),
+            $this->book
+        );
+
+        $this->assertFalse($validator->fails());
+    }
+
+    public function test_他の書籍が使用しているisbnには変更できない(): void
+    {
+        $user = User::factory()->create();
+
+        $otherBook = $user->books()->create([
+            'title' => '別の書籍',
+            'author' => '別の著者',
+            'isbn' => '2222222222222',
+            'published_date' => '2026-07-01',
+            'description' => null,
+            'image_url' => null,
+        ]);
+
+        $validator = $this->makeValidator(
+            $this->validData([
+                'isbn' => $otherBook->isbn,
+            ]),
+            $this->book
+        );
+
+        $this->assertTrue($validator->fails());
+        $this->assertTrue(
+            $validator->errors()->has('isbn')
+        );
+    }
+
+
+
     public function test_published_dateが日付形式でない場合はバリデーションエラーになる(): void
     {
         $validator = $this->makeValidator(
             $this->validData([
                 'published_date' => '日付ではありません',
-            ])
+            ]),
+            $this->book
         );
 
         $this->assertTrue($validator->fails());
@@ -224,7 +274,8 @@ class StoreBookRequestTest extends TestCase
         $validator = $this->makeValidator(
             $this->validData([
                 'image_url' => 'URL形式ではありません',
-            ])
+            ]),
+            $this->book
         );
 
         $this->assertTrue($validator->fails());
@@ -237,8 +288,11 @@ class StoreBookRequestTest extends TestCase
     {
         $validator = $this->makeValidator(
             $this->validData([
-                'image_url' => ['https://example.com/book.jpg'],
-            ])
+                'image_url' => [
+                    'https://example.com/book.jpg',
+                ],
+            ]),
+            $this->book
         );
 
         $this->assertTrue($validator->fails());
@@ -249,12 +303,14 @@ class StoreBookRequestTest extends TestCase
 
     public function test_存在しないジャンルはバリデーションエラーになる(): void
     {
-        $notExistingGenreId = Genre::query()->max('id') + 1;
+        $notExistingGenreId =
+            Genre::query()->max('id') + 1;
 
         $validator = $this->makeValidator(
             $this->validData([
                 'genres' => [$notExistingGenreId],
-            ])
+            ]),
+            $this->book
         );
 
         $this->assertTrue($validator->fails());
@@ -270,7 +326,8 @@ class StoreBookRequestTest extends TestCase
         $validator = $this->makeValidator(
             $this->validData([
                 'genres' => $genre->id,
-            ])
+            ]),
+            $this->book
         );
 
         $this->assertTrue($validator->fails());
@@ -284,7 +341,8 @@ class StoreBookRequestTest extends TestCase
         $validator = $this->makeValidator(
             $this->validData([
                 'genres' => ['整数ではありません'],
-            ])
+            ]),
+            $this->book
         );
 
         $this->assertTrue($validator->fails());
@@ -303,7 +361,8 @@ class StoreBookRequestTest extends TestCase
                     $genre->id,
                     $genre->id,
                 ],
-            ])
+            ]),
+            $this->book
         );
 
         $this->assertTrue($validator->fails());
@@ -318,7 +377,8 @@ class StoreBookRequestTest extends TestCase
         $validator = $this->makeValidator(
             $this->validData([
                 'genres' => [],
-            ])
+            ]),
+            $this->book
         );
 
         $this->assertTrue($validator->fails());
@@ -332,7 +392,8 @@ class StoreBookRequestTest extends TestCase
         $validator = $this->makeValidator(
             $this->validData([
                 'title' => str_repeat('あ', 255),
-            ])
+            ]),
+            $this->book
         );
 
         $this->assertFalse($validator->fails());
@@ -343,7 +404,8 @@ class StoreBookRequestTest extends TestCase
         $validator = $this->makeValidator(
             $this->validData([
                 'title' => str_repeat('あ', 256),
-            ])
+            ]),
+            $this->book
         );
 
         $this->assertTrue($validator->fails());
@@ -357,7 +419,8 @@ class StoreBookRequestTest extends TestCase
         $validator = $this->makeValidator(
             $this->validData([
                 'author' => str_repeat('あ', 255),
-            ])
+            ]),
+            $this->book
         );
 
         $this->assertFalse($validator->fails());
@@ -368,7 +431,8 @@ class StoreBookRequestTest extends TestCase
         $validator = $this->makeValidator(
             $this->validData([
                 'author' => str_repeat('あ', 256),
-            ])
+            ]),
+            $this->book
         );
 
         $this->assertTrue($validator->fails());
@@ -382,7 +446,8 @@ class StoreBookRequestTest extends TestCase
         $validator = $this->makeValidator(
             $this->validData([
                 'description' => str_repeat('あ', 2000),
-            ])
+            ]),
+            $this->book
         );
 
         $this->assertFalse($validator->fails());
@@ -393,7 +458,8 @@ class StoreBookRequestTest extends TestCase
         $validator = $this->makeValidator(
             $this->validData([
                 'description' => str_repeat('a', 2001),
-            ])
+            ]),
+            $this->book
         );
 
         $this->assertTrue($validator->fails());
@@ -405,17 +471,22 @@ class StoreBookRequestTest extends TestCase
     public function test_画像URLが512文字の場合はバリデーションを通過する(): void
     {
         $baseUrl = 'https://example.com/';
+
         $imageUrl = $baseUrl . str_repeat(
             'a',
             512 - strlen($baseUrl)
         );
 
-        $this->assertSame(512, strlen($imageUrl));
+        $this->assertSame(
+            512,
+            strlen($imageUrl)
+        );
 
         $validator = $this->makeValidator(
             $this->validData([
                 'image_url' => $imageUrl,
-            ])
+            ]),
+            $this->book
         );
 
         $this->assertFalse($validator->fails());
@@ -424,17 +495,22 @@ class StoreBookRequestTest extends TestCase
     public function test_画像URLが513文字の場合はバリデーションエラーになる(): void
     {
         $baseUrl = 'https://example.com/';
+
         $imageUrl = $baseUrl . str_repeat(
             'a',
             513 - strlen($baseUrl)
         );
 
-        $this->assertSame(513, strlen($imageUrl));
+        $this->assertSame(
+            513,
+            strlen($imageUrl)
+        );
 
         $validator = $this->makeValidator(
             $this->validData([
                 'image_url' => $imageUrl,
-            ])
+            ]),
+            $this->book
         );
 
         $this->assertTrue($validator->fails());
@@ -442,4 +518,9 @@ class StoreBookRequestTest extends TestCase
             $validator->errors()->has('image_url')
         );
     }
+
+
+
+
+
 }
