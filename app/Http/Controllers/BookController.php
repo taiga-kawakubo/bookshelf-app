@@ -4,12 +4,11 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreBookRequest;
 use App\Http\Requests\UpdateBookRequest;
-use Illuminate\Http\Request;
 use App\Models\Book;
 use App\Models\Genre;
-use Illuminate\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\DB;
+use Illuminate\View\View;
 
 class BookController extends Controller
 {
@@ -19,27 +18,26 @@ class BookController extends Controller
             ->with('genres')
             ->withAvg('reviews', 'rating')
             ->paginate(10);
-        
+
         return view('books.index', compact('books'));
     }
 
-    public function create():View
+    public function create(): View
     {
         $genres = Genre::query()->get();
 
         return view('books.create', compact('genres'));
     }
 
-
     public function store(StoreBookRequest $request): RedirectResponse
     {
         $validated = $request->validated();
 
-        DB::transaction(function() use($request, $validated){
+        DB::transaction(function () use ($request, $validated) {
             $book = Book::create([
                 'user_id' => $request->user()->id,
                 'title' => $validated['title'],
-                'author'=> $validated['author'],
+                'author' => $validated['author'],
                 'isbn' => $validated['isbn'],
                 'published_date' => $validated['published_date'],
                 'description' => $validated['description'] ?? null,
@@ -54,14 +52,13 @@ class BookController extends Controller
             ->with('success', '書籍を登録しました。');
     }
 
-
     public function show(Book $book): View
     {
         $book->load([
             'genres',
             'reviews.user',
             'reviews.likedByUsers',
-        ]); 
+        ]);
 
         return view('books.show', compact('book'));
     }
@@ -75,16 +72,15 @@ class BookController extends Controller
         return view('books.edit', compact('book', 'genres'));
     }
 
-
-    public function update(UpdateBookRequest $request,Book $book): RedirectResponse
+    public function update(UpdateBookRequest $request, Book $book): RedirectResponse
     {
         $this->authorize('update', $book);
 
         $validated = $request->validated();
-        DB::transaction(function() use($book, $validated){
+        DB::transaction(function () use ($book, $validated) {
             $book->update([
                 'title' => $validated['title'],
-                'author'=> $validated['author'],
+                'author' => $validated['author'],
                 'isbn' => $validated['isbn'],
                 'published_date' => $validated['published_date'],
                 'description' => $validated['description'] ?? null,
@@ -95,7 +91,7 @@ class BookController extends Controller
         });
 
         return redirect()
-            ->route('books.show',$book)
+            ->route('books.show', $book)
             ->with('success', '書籍を更新しました。');
     }
 

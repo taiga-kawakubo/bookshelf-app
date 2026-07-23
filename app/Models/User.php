@@ -27,7 +27,7 @@ class User extends Authenticatable
 
     /**
      * シリアライズ時に非表示にする属性
-     * 
+     *
      * @var array<int, string>
      */
     protected $hidden = [

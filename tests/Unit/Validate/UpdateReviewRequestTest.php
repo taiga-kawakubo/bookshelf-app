@@ -14,7 +14,7 @@ class UpdateReviewRequestTest extends TestCase
      */
     private function makeValidator(array $data): ValidationValidator
     {
-        $request = new UpdateReviewRequest();
+        $request = new UpdateReviewRequest;
 
         return Validator::make(
             $data,
