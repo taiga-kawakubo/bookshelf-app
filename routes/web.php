@@ -4,6 +4,7 @@ use App\Http\Controllers\BookController;
 use App\Http\Controllers\GenreController;
 use App\Http\Controllers\ReviewController;
 use App\Http\Controllers\FavoriteController;
+use App\Http\Controllers\ReviewLikeController;
 use Illuminate\Support\Facades\Route;
 
 // ゲストも閲覧可能
@@ -49,8 +50,7 @@ Route::middleware('auth')->group(function () {
         ->whereNumber('review')
         ->name('reviews.destroy');
 
-    Route::post('/books/{book}/reviews/like', fn () => 'レビューにいいねボタンをおす（準備中）')
-        ->whereNumber('book')
+    Route::post('/reviews/{review}/like',[ReviewLikeController::class, 'toggle'])
         ->name('reviews.like');
 
     Route::get('/genres', [GenreController::class, 'index'])
@@ -77,9 +77,8 @@ Route::middleware('auth')->group(function () {
     Route::get('/favorites', [FavoriteController::class, 'index'])
         ->name('favorites.index');
 
-    Route::post('/books/{book}/favorites',  [FavoriteController::class, 'toggle'])
+    Route::post('/books/{book}/favorites',[FavoriteController::class, 'toggle'])
         ->name('favorites.toggle');
-
 });
 
 // 可変パラメータを持つRouteは固定Routeより後
