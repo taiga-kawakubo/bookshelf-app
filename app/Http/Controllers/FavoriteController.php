@@ -2,10 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Book;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
-use App\Models\Book;
 
 class FavoriteController extends Controller
 {
@@ -17,10 +17,9 @@ class FavoriteController extends Controller
             ->with('genres')
             ->orderBy('books.id')
             ->paginate(10);
-        
+
         return view('favorites.index', compact('books'));
     }
-
 
     public function toggle(Request $request, Book $book): RedirectResponse
     {
