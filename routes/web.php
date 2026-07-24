@@ -55,22 +55,22 @@ Route::middleware('auth')->group(function () {
     Route::get('/genres', [GenreController::class, 'index'])
         ->name('genres.index');
 
+    Route::get('/genres/create', [GenreController::class, 'create'])
+        ->name('genres.create');
+
     Route::get('/genres/{genre}', [GenreController::class, 'show'])
         ->name('genres.show');
 
-    Route::get('/genres/create', fn () => 'ジャンル作成画面（準備中）')
-        ->name('genres.create');
-
-    Route::post('/genres', fn () => 'ジャンル作成（準備中）')
+    Route::post('/genres', [GenreController::class, 'store'])
         ->name('genres.store');
 
-    Route::get('/genres/{genre}/edit', fn () => 'ジャンル編集画面（準備中）')
+    Route::get('/genres/{genre}/edit', [GenreController::class, 'edit'])
         ->name('genres.edit');
 
-    Route::put('/genres/{genre}', fn () => 'ジャンル更新（準備中）')
+    Route::put('/genres/{genre}', [GenreController::class, 'update'])
         ->name('genres.update');
 
-    Route::delete('/genres/{genre}', fn () => 'ジャンル削除（準備中）')
+    Route::delete('/genres/{genre}', [GenreController::class, 'destroy'])
         ->name('genres.destroy');
 
     Route::get('/favorites', fn () => 'お気に入り一覧（準備中）')

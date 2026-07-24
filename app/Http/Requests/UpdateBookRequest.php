@@ -9,7 +9,7 @@ use Illuminate\Validation\Rule;
 class UpdateBookRequest extends FormRequest
 {
     /**
-     * Determine if the user is authorized to make this request.
+     * このリクエストを実行できるか判定する
      */
     public function authorize(): bool
     {
@@ -17,7 +17,7 @@ class UpdateBookRequest extends FormRequest
     }
 
     /**
-     * バリデーションルール.
+     * バリデーションルール
      *
      * @return array<string, ValidationRule|array<mixed>|string>
      */
@@ -42,7 +42,7 @@ class UpdateBookRequest extends FormRequest
     }
 
     /**
-     * バリデーションメッセージ.
+     * バリデーションメッセージ
      *
      * @return array<string, string>
      */
