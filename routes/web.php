@@ -1,9 +1,10 @@
 <?php
 
 use App\Http\Controllers\BookController;
-use App\Http\Controllers\GenreController;
-use App\Http\Controllers\ReviewController;
 use App\Http\Controllers\FavoriteController;
+use App\Http\Controllers\GenreController;
+use App\Http\Controllers\RankingController;
+use App\Http\Controllers\ReviewController;
 use App\Http\Controllers\ReviewLikeController;
 use Illuminate\Support\Facades\Route;
 
@@ -11,7 +12,7 @@ use Illuminate\Support\Facades\Route;
 Route::get('/books', [BookController::class, 'index'])
     ->name('books.index');
 
-Route::get('/ranking', fn () => 'ランキング（準備中）')
+Route::get('/ranking', [RankingController::class, 'index'])
     ->name('ranking.index');
 
 // 認証済みユーザーのみ
@@ -50,7 +51,7 @@ Route::middleware('auth')->group(function () {
         ->whereNumber('review')
         ->name('reviews.destroy');
 
-    Route::post('/reviews/{review}/like',[ReviewLikeController::class, 'toggle'])
+    Route::post('/reviews/{review}/like', [ReviewLikeController::class, 'toggle'])
         ->name('reviews.like');
 
     Route::get('/genres', [GenreController::class, 'index'])
@@ -77,7 +78,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/favorites', [FavoriteController::class, 'index'])
         ->name('favorites.index');
 
-    Route::post('/books/{book}/favorites',[FavoriteController::class, 'toggle'])
+    Route::post('/books/{book}/favorites', [FavoriteController::class, 'toggle'])
         ->name('favorites.toggle');
 });
 
