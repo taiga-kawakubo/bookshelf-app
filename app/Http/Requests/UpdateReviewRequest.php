@@ -6,6 +6,9 @@ use Illuminate\Foundation\Http\FormRequest;
 
 class UpdateReviewRequest extends FormRequest
 {
+    /**
+     * このリクエストを実行できるか判定する
+     */
     public function authorize(): bool
     {
         return true;
