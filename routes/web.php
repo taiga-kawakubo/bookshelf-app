@@ -3,6 +3,7 @@
 use App\Http\Controllers\BookController;
 use App\Http\Controllers\GenreController;
 use App\Http\Controllers\ReviewController;
+use App\Http\Controllers\FavoriteController;
 use Illuminate\Support\Facades\Route;
 
 // ゲストも閲覧可能
@@ -73,10 +74,10 @@ Route::middleware('auth')->group(function () {
     Route::delete('/genres/{genre}', [GenreController::class, 'destroy'])
         ->name('genres.destroy');
 
-    Route::get('/favorites', fn () => 'お気に入り一覧（準備中）')
+    Route::get('/favorites', [FavoriteController::class, 'index'])
         ->name('favorites.index');
 
-    Route::post('/favorites', fn () => 'お気に入り登録（準備中）')
+    Route::post('/books/{book}/favorites',  [FavoriteController::class, 'toggle'])
         ->name('favorites.toggle');
 
 });
