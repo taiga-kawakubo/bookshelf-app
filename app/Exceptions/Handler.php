@@ -6,7 +6,9 @@ use App\Models\Book;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
 use Illuminate\Http\Request;
+use Illuminate\Validation\ValidationException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+
 
 class Handler extends ExceptionHandler
 {
@@ -32,5 +34,15 @@ class Handler extends ExceptionHandler
                 'message' => 'エンドポイントが見つかりません。',
             ], 404);
         });
+    }
+
+    protected function invalidJson($request,ValidationException $exception){
+        if ($request->is('api/*')) {
+            return response()->json([
+                'message' => '入力内容に誤りがあります。',
+                'errors' => $exception->errors(),
+            ], $exception->status);
+        }
+        return parent::invalidJson($request, $exception);
     }
 }

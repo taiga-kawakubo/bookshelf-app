@@ -29,7 +29,10 @@ class IndexBookRequestTest extends TestCase
             'page' => 1,
         ]);
 
-        $this->assertTrue($validator->passes());
+        $this->assertTrue(
+            $validator->passes(),
+            $validator->errors()->first()
+        );
     }
 
     public function test_正常なページあたりの件数ではバリデーションを通過する(): void
@@ -38,7 +41,10 @@ class IndexBookRequestTest extends TestCase
             'per_page' => 1,
         ]);
 
-        $this->assertTrue($validator->passes());
+        $this->assertTrue(
+            $validator->passes(),
+            $validator->errors()->first()
+        );
     }
 
     public function test_ページ番号とページあたりの件数がnullでもバリデーションを通過する(): void
@@ -48,7 +54,10 @@ class IndexBookRequestTest extends TestCase
             'per_page' => null,
         ]);
 
-        $this->assertTrue($validator->passes());
+        $this->assertTrue(
+            $validator->passes(),
+            $validator->errors()->first()
+        );
     }
 
     public function test_ページ番号が整数でない場合バリデーションエラーになる(): void
