@@ -23,10 +23,8 @@ class BookIndexResource extends JsonResource
             'published_date' => $this->published_date?->format('Y-m-d'),
             'image_url' => $this->image_url,
             'genres' => GenreResource::collection($this->whenLoaded('genres')),
-            'average_rating' => $this->whenAggregated(
-                'reviews',
-                'rating',
-                'avg',
+            'average_rating' => $this->whenHas(
+                'reviews_avg_rating',
                 fn () => $this->reviews_avg_rating === null
                     ? null
                     : round((float) $this->reviews_avg_rating, 1)
