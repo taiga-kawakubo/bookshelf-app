@@ -9,7 +9,6 @@ use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
-
 class Handler extends ExceptionHandler
 {
     public function register(): void
@@ -36,13 +35,15 @@ class Handler extends ExceptionHandler
         });
     }
 
-    protected function invalidJson($request,ValidationException $exception){
+    protected function invalidJson($request, ValidationException $exception)
+    {
         if ($request->is('api/*')) {
             return response()->json([
                 'message' => '入力内容に誤りがあります。',
                 'errors' => $exception->errors(),
             ], $exception->status);
         }
+
         return parent::invalidJson($request, $exception);
     }
 }

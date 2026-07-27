@@ -66,7 +66,7 @@ class StoreBookRequestTest extends TestCase
         $this->assertFalse($validator->fails());
     }
 
-    public function test_説明と画像URLが空でもバリデーションを通過する(): void
+    public function test_説明と画像_ur_lが空でもバリデーションを通過する(): void
     {
         $validator = $this->makeValidator(
             $this->validData([
@@ -232,7 +232,7 @@ class StoreBookRequestTest extends TestCase
         );
     }
 
-    public function test_画像URLが文字列でない場合はバリデーションエラーになる(): void
+    public function test_画像_ur_lが文字列でない場合はバリデーションエラーになる(): void
     {
         $validator = $this->makeValidator(
             $this->validData([
@@ -278,7 +278,7 @@ class StoreBookRequestTest extends TestCase
         );
     }
 
-    public function test_ジャンルIDが整数でない場合はバリデーションエラーになる(): void
+    public function test_ジャンル_i_dが整数でない場合はバリデーションエラーになる(): void
     {
         $validator = $this->makeValidator(
             $this->validData([
