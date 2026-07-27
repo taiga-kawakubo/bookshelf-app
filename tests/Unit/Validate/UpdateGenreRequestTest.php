@@ -1,6 +1,6 @@
 <?php
 
-namespace Tests\Unit;
+namespace Tests\Unit\Validate;
 
 use App\Http\Requests\UpdateGenreRequest;
 use App\Models\Genre;
@@ -14,6 +14,18 @@ use Tests\TestCase;
 class UpdateGenreRequestTest extends TestCase
 {
     use RefreshDatabase;
+
+    private Genre $genre;
+
+    /**
+     * 各テストで使用する更新対象ジャンルを作成
+     */
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        $this->genre = $this->createGenre('小説');
+    }
 
     /**
      * テスト用ジャンルを作成
@@ -32,18 +44,21 @@ class UpdateGenreRequestTest extends TestCase
     /**
      * UpdateGenreRequestのルールでバリデーターを作成
      */
-    private function makeValidator(array $data, Genre $genre): ValidationValidator
+    private function makeValidator(array $data): ValidationValidator
     {
         $request = new UpdateGenreRequest;
 
-        // UpdateGenreRequest内の$this->route('genre')で更新対象ジャンルを取得できるようにする。
+        /*
+         * UpdateGenreRequest内の$this->route('genre')から更新対象ジャンルを取得できるようにする。
+         */
         $route = new Route(['PUT'], 'genres/{genre}', []);
-        $route->bind($request);
-        $route->setParameter('genre', $genre);
 
-        $request->setRouteResolver(function () use ($route) {
-            return $route;
-        });
+        // Routeのパラメータ配列を初期化する
+        $route->bind($request);
+        // bookパラメータを更新対象genreモデルへ置き換える
+        $route->setParameter('genre', $this->genre);
+
+        $request->setRouteResolver(fn () => $route);
 
         return Validator::make(
             $data,
@@ -53,7 +68,8 @@ class UpdateGenreRequestTest extends TestCase
     }
 
     /**
-     * 正常なジャンル入力データを作成し、必要な項目だけ上書きできるようにする
+     * 正常なジャンル入力データを作成し、
+     * 必要な項目だけ上書きできるようにする
      */
     private function validData(array $override = []): array
     {
@@ -64,11 +80,8 @@ class UpdateGenreRequestTest extends TestCase
 
     public function test_全ての項目が正しい場合はバリデーションを通過する(): void
     {
-        $genre = $this->createGenre('小説');
-
         $validator = $this->makeValidator(
-            $this->validData(),
-            $genre
+            $this->validData()
         );
 
         $this->assertFalse($validator->fails());
@@ -76,13 +89,10 @@ class UpdateGenreRequestTest extends TestCase
 
     public function test_現在と同じジャンル名の場合はバリデーションを通過する(): void
     {
-        $genre = $this->createGenre('小説');
-
         $validator = $this->makeValidator(
             $this->validData([
-                'name' => '小説',
-            ]),
-            $genre
+                'name' => $this->genre->name,
+            ])
         );
 
         $this->assertFalse($validator->fails());
@@ -90,16 +100,11 @@ class UpdateGenreRequestTest extends TestCase
 
     public function test_必須項目が送信されていない場合はバリデーションエラーになる(): void
     {
-        $genre = $this->createGenre('小説');
-
         $data = $this->validData();
 
         unset($data['name']);
 
-        $validator = $this->makeValidator(
-            $data,
-            $genre
-        );
+        $validator = $this->makeValidator($data);
 
         $this->assertTrue($validator->fails());
         $this->assertTrue(
@@ -109,8 +114,6 @@ class UpdateGenreRequestTest extends TestCase
 
     public function test_ジャンル名が文字列でない場合はバリデーションエラーになる(): void
     {
-        $genre = $this->createGenre('小説');
-
         $invalidNames = [
             ['文学'],
             123,
@@ -120,8 +123,7 @@ class UpdateGenreRequestTest extends TestCase
             $validator = $this->makeValidator(
                 $this->validData([
                     'name' => $name,
-                ]),
-                $genre
+                ])
             );
 
             $this->assertTrue($validator->fails());
@@ -133,13 +135,10 @@ class UpdateGenreRequestTest extends TestCase
 
     public function test_ジャンル名が50文字の場合はバリデーションを通過する(): void
     {
-        $genre = $this->createGenre('小説');
-
         $validator = $this->makeValidator(
             $this->validData([
                 'name' => str_repeat('あ', 50),
-            ]),
-            $genre
+            ])
         );
 
         $this->assertFalse($validator->fails());
@@ -147,13 +146,10 @@ class UpdateGenreRequestTest extends TestCase
 
     public function test_ジャンル名が51文字の場合はバリデーションエラーになる(): void
     {
-        $genre = $this->createGenre('小説');
-
         $validator = $this->makeValidator(
             $this->validData([
                 'name' => str_repeat('あ', 51),
-            ]),
-            $genre
+            ])
         );
 
         $this->assertTrue($validator->fails());
@@ -164,15 +160,12 @@ class UpdateGenreRequestTest extends TestCase
 
     public function test_別のジャンルと同じ名前の場合はバリデーションエラーになる(): void
     {
-        $genre = $this->createGenre('小説');
-
-        $this->createGenre('ミステリー');
+        $otherGenre = $this->createGenre('ミステリー');
 
         $validator = $this->makeValidator(
             $this->validData([
-                'name' => 'ミステリー',
-            ]),
-            $genre
+                'name' => $otherGenre->name,
+            ])
         );
 
         $this->assertTrue($validator->fails());

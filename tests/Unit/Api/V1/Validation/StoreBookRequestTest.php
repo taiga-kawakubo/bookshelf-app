@@ -35,7 +35,7 @@ class StoreBookRequestTest extends TestCase
      */
     private function makeValidator(array $data): ValidationValidator
     {
-        $request = new StoreBookRequest();
+        $request = new StoreBookRequest;
 
         return Validator::make(
             $data,
@@ -75,7 +75,7 @@ class StoreBookRequestTest extends TestCase
         );
     }
 
-    public function test_説明と画像URLがnullでもバリデーションを通過する(): void
+    public function test_説明と画像_ur_lがnullでもバリデーションを通過する(): void
     {
         $validator = $this->makeValidator(
             $this->validData([
@@ -90,7 +90,7 @@ class StoreBookRequestTest extends TestCase
         );
     }
 
-    public function test_登録者IDが未入力の場合バリデーションエラーになる(): void
+    public function test_登録者_i_dが未入力の場合バリデーションエラーになる(): void
     {
         $data = $this->validData();
 
@@ -107,7 +107,7 @@ class StoreBookRequestTest extends TestCase
         );
     }
 
-    public function test_登録者IDが整数でない場合バリデーションエラーになる(): void
+    public function test_登録者_i_dが整数でない場合バリデーションエラーになる(): void
     {
         $validator = $this->makeValidator(
             $this->validData([
@@ -124,7 +124,7 @@ class StoreBookRequestTest extends TestCase
         );
     }
 
-    public function test_登録者IDが存在しない場合バリデーションエラーになる(): void
+    public function test_登録者_i_dが存在しない場合バリデーションエラーになる(): void
     {
         $missingUserId = (User::query()->max('id') ?? 0) + 1;
 
@@ -245,7 +245,7 @@ class StoreBookRequestTest extends TestCase
         );
     }
 
-    public function test_ISBNが未入力の場合バリデーションエラーになる(): void
+    public function test_isb_nが未入力の場合バリデーションエラーになる(): void
     {
         $data = $this->validData();
 
@@ -262,7 +262,7 @@ class StoreBookRequestTest extends TestCase
         );
     }
 
-    public function test_ISBNが13桁でない場合バリデーションエラーになる(): void
+    public function test_isb_nが13桁でない場合バリデーションエラーになる(): void
     {
         $validator = $this->makeValidator(
             $this->validData([
@@ -279,7 +279,7 @@ class StoreBookRequestTest extends TestCase
         );
     }
 
-    public function test_ISBNが既に使用されている場合バリデーションエラーになる(): void
+    public function test_isb_nが既に使用されている場合バリデーションエラーになる(): void
     {
         Book::query()->create([
             'user_id' => $this->user->id,
@@ -374,7 +374,7 @@ class StoreBookRequestTest extends TestCase
         );
     }
 
-    public function test_画像URLが文字列でない場合バリデーションエラーになる(): void
+    public function test_画像_ur_lが文字列でない場合バリデーションエラーになる(): void
     {
         $validator = $this->makeValidator(
             $this->validData([
@@ -391,7 +391,7 @@ class StoreBookRequestTest extends TestCase
         );
     }
 
-    public function test_画像URLがURL形式でない場合バリデーションエラーになる(): void
+    public function test_画像_ur_lが_ur_l形式でない場合バリデーションエラーになる(): void
     {
         $validator = $this->makeValidator(
             $this->validData([
@@ -408,9 +408,9 @@ class StoreBookRequestTest extends TestCase
         );
     }
 
-    public function test_画像URLが512文字を超える場合バリデーションエラーになる(): void
+    public function test_画像_ur_lが512文字を超える場合バリデーションエラーになる(): void
     {
-        $longUrl = 'https://example.com/' . str_repeat('a', 493);
+        $longUrl = 'https://example.com/'.str_repeat('a', 493);
 
         $validator = $this->makeValidator(
             $this->validData([
@@ -478,7 +478,7 @@ class StoreBookRequestTest extends TestCase
         );
     }
 
-    public function test_ジャンルIDが整数でない場合バリデーションエラーになる(): void
+    public function test_ジャンル_i_dが整数でない場合バリデーションエラーになる(): void
     {
         $validator = $this->makeValidator(
             $this->validData([
@@ -495,7 +495,7 @@ class StoreBookRequestTest extends TestCase
         );
     }
 
-    public function test_ジャンルIDが重複している場合バリデーションエラーになる(): void
+    public function test_ジャンル_i_dが重複している場合バリデーションエラーになる(): void
     {
         $genre = Genre::query()->firstOrFail();
 
@@ -527,7 +527,7 @@ class StoreBookRequestTest extends TestCase
         );
     }
 
-    public function test_存在しないジャンルIDの場合バリデーションエラーになる(): void
+    public function test_存在しないジャンル_i_dの場合バリデーションエラーになる(): void
     {
         $missingGenreId = (Genre::query()->max('id') ?? 0) + 1;
 
