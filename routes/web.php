@@ -52,6 +52,7 @@ Route::middleware('auth')->group(function () {
         ->name('reviews.destroy');
 
     Route::post('/reviews/{review}/like', [ReviewLikeController::class, 'toggle'])
+        ->whereNumber('book')
         ->name('reviews.like');
 
     Route::get('/genres', [GenreController::class, 'index'])
@@ -61,24 +62,29 @@ Route::middleware('auth')->group(function () {
         ->name('genres.create');
 
     Route::get('/genres/{genre}', [GenreController::class, 'show'])
+        ->whereNumber('book')
         ->name('genres.show');
 
     Route::post('/genres', [GenreController::class, 'store'])
         ->name('genres.store');
 
     Route::get('/genres/{genre}/edit', [GenreController::class, 'edit'])
+        ->whereNumber('book')
         ->name('genres.edit');
 
     Route::put('/genres/{genre}', [GenreController::class, 'update'])
+        ->whereNumber('book')
         ->name('genres.update');
 
     Route::delete('/genres/{genre}', [GenreController::class, 'destroy'])
+        ->whereNumber('book')
         ->name('genres.destroy');
 
     Route::get('/favorites', [FavoriteController::class, 'index'])
         ->name('favorites.index');
 
     Route::post('/books/{book}/favorites', [FavoriteController::class, 'toggle'])
+        ->whereNumber('book')
         ->name('favorites.toggle');
 });
 
