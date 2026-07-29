@@ -31,7 +31,7 @@ class BookCrudTest extends TestCase
      * 正常な書籍入力データを作成する。
      * テストごとに変更したい値は、$overrideで上書きする。
      *
-     * @param array<string, mixed> $override
+     * @param  array<string, mixed>  $override
      * @return array<string, mixed>
      */
     private function validBookData(array $override = []): array
@@ -174,7 +174,7 @@ class BookCrudTest extends TestCase
         $this->assertDatabaseCount('book_genre', 0);
     }
 
-    public function test_ISBNが13桁でない場合は書籍を登録できない(): void
+    public function test_isb_nが13桁でない場合は書籍を登録できない(): void
     {
         $user = User::factory()->create();
 
@@ -194,7 +194,7 @@ class BookCrudTest extends TestCase
         $this->assertDatabaseCount('book_genre', 0);
     }
 
-    public function test_登録済みISBNでは書籍を登録できない(): void
+    public function test_登録済み_isb_nでは書籍を登録できない(): void
     {
         $user = User::factory()->create();
 
@@ -439,7 +439,7 @@ class BookCrudTest extends TestCase
         $this->assertDatabaseCount('book_genre', 1);
     }
 
-    public function test_別の書籍が使用しているISBNには更新できない(): void
+    public function test_別の書籍が使用している_isb_nには更新できない(): void
     {
         $owner = User::factory()->create();
 
@@ -638,17 +638,17 @@ class BookCrudTest extends TestCase
             '書籍を削除しました。'
         );
 
-        $this->assertDatabaseMissing('books', ['id' => $book->id,]);
+        $this->assertDatabaseMissing('books', ['id' => $book->id]);
 
-        $this->assertDatabaseMissing('reviews', ['id' => $review->id,]);
+        $this->assertDatabaseMissing('reviews', ['id' => $review->id]);
 
-        $this->assertDatabaseMissing('favorites', ['book_id' => $book->id,]);
+        $this->assertDatabaseMissing('favorites', ['book_id' => $book->id]);
 
-        $this->assertDatabaseMissing('book_genre', ['book_id' => $book->id,]);
+        $this->assertDatabaseMissing('book_genre', ['book_id' => $book->id]);
 
-        $this->assertDatabaseMissing('review_likes', ['review_id' => $review->id,]);
+        $this->assertDatabaseMissing('review_likes', ['review_id' => $review->id]);
 
-        $this->assertDatabaseHas('genres', ['id' => $this->genre->id,]);
+        $this->assertDatabaseHas('genres', ['id' => $this->genre->id]);
     }
 
     public function test_未認証ユーザーは書籍を削除できない(): void
