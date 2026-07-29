@@ -51,6 +51,7 @@ class BookIndexTest extends TestCase
             $response->assertSeeText($genre->name);
         }
     }
+
     public function test_書籍が10件の場合は1ページ目に10件すべて表示される(): void
     {
         Book::factory()
@@ -70,6 +71,7 @@ class BookIndexTest extends TestCase
 
         $this->assertCount(10, $books);
         $this->assertSame(10, $books->total());
+        $this->assertSame(10, $books->perPage());
         $this->assertSame(1, $books->currentPage());
         $this->assertSame(1, $books->lastPage());
     }
@@ -95,6 +97,7 @@ class BookIndexTest extends TestCase
 
         $this->assertCount(10, $firstPageBooks);
         $this->assertSame(11, $firstPageBooks->total());
+        $this->assertSame(10, $firstPageBooks->perPage());
         $this->assertSame(1, $firstPageBooks->currentPage());
         $this->assertSame(2, $firstPageBooks->lastPage());
 
@@ -113,6 +116,7 @@ class BookIndexTest extends TestCase
 
         $this->assertCount(1, $secondPageBooks);
         $this->assertSame(11, $secondPageBooks->total());
+        $this->assertSame(10, $secondPageBooks->perPage());
         $this->assertSame(2, $secondPageBooks->currentPage());
         $this->assertSame(2, $secondPageBooks->lastPage());
     }
