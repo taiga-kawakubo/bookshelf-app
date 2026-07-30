@@ -11,10 +11,31 @@ class RankingController extends Controller
     {
         $rankedBooks = Book::query()
             ->withAvg('reviews', 'rating')
+            ->withCount('reviews')
             ->has('reviews')
             ->orderByDesc('reviews_avg_rating')
+            ->orderByDesc('reviews_count')
+            ->orderByDesc('updated_at')
+            ->orderBy('title')
             ->take(10)
             ->get();
+
+        $currentRank = 0;
+        $previousAverageRating = null;
+
+        $rankedBooks->each(function (Book $book) use (&$currentRank, &$previousAverageRating): void {
+            $averageRating = (float) $book->reviews_avg_rating;
+
+            if (
+                $previousAverageRating === null
+                || $averageRating !== $previousAverageRating
+            ) {
+                $currentRank++;
+                $previousAverageRating = $averageRating;
+            }
+
+            $book->setAttribute('rank', $currentRank);
+        });
 
         return view('ranking.index', compact('rankedBooks'));
     }
