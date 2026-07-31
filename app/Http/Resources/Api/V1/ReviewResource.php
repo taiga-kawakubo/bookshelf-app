@@ -8,7 +8,7 @@ use Illuminate\Http\Resources\Json\JsonResource;
 class ReviewResource extends JsonResource
 {
     /**
-     * Transform the resource into an array.
+     * レビュー情報をAPIレスポンス用の配列に変換する。
      *
      * @return array<string, mixed>
      */
@@ -16,7 +16,12 @@ class ReviewResource extends JsonResource
     {
         return [
             'id' => $this->id,
-            '',
+            'rating' => $this->rating,
+            'comment' => $this->comment,
+            'user' => $this->whenLoaded('user', fn (): array => [
+                'id' => $this->user->id,
+                'name' => $this->user->name,
+            ]),
         ];
     }
 }
