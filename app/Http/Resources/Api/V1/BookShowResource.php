@@ -24,7 +24,7 @@ class BookShowResource extends JsonResource
             'image_url' => $this->image_url,
             'description' => $this->description,
             'genres' => GenreResource::collection($this->whenLoaded('genres')),
-            'review' => ReviewResource::collection($this->whenLoaded('review')),
+            'reviews' => ReviewResource::collection($this->whenLoaded('reviews')),
         ];
     }
 }
