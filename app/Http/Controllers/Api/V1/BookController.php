@@ -52,7 +52,7 @@ class BookController extends Controller
 
         return (new BookStoreUpdateResource($book))
             ->additional([
-                'message' => '書籍を更新しました。',
+                'message' => '書籍を登録しました。',
             ])
             ->response()
             ->setStatusCode(201);
