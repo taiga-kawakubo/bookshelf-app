@@ -12,7 +12,7 @@ class BookShowTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_書籍詳細APIは指定した書籍情報をJSONで返す(): void
+    public function test_書籍詳細_ap_iは指定した書籍情報を_jso_nで返す(): void
     {
         $bookOwner = User::factory()->create([
             'name' => '書籍登録者',
@@ -97,7 +97,7 @@ class BookShowTest extends TestCase
         $response->assertJsonPath('data.reviews.0.user.name', 'レビュー投稿者');
     }
 
-    public function test_書籍詳細APIは指定した書籍だけを返す(): void
+    public function test_書籍詳細_ap_iは指定した書籍だけを返す(): void
     {
         $bookOwner = User::factory()->create();
 
@@ -126,7 +126,7 @@ class BookShowTest extends TestCase
         ]);
     }
 
-    public function test_レビューがない書籍詳細APIはreviewsを空配列で返す(): void
+    public function test_レビューがない書籍詳細_ap_iはreviewsを空配列で返す(): void
     {
         $bookOwner = User::factory()->create();
 
@@ -151,7 +151,7 @@ class BookShowTest extends TestCase
         $response->assertJsonPath('data.reviews', []);
     }
 
-    public function test_存在しない書籍詳細APIは404を返す(): void
+    public function test_存在しない書籍詳細_ap_iは404を返す(): void
     {
         $response = $this->getJson(route('api.v1.books.show', 999999));
 
@@ -167,7 +167,7 @@ class BookShowTest extends TestCase
         );
     }
 
-    public function test_不正な形式の書籍IDを指定した場合は404を返す(): void
+    public function test_不正な形式の書籍_i_dを指定した場合は404を返す(): void
     {
         $response = $this->getJson(route('api.v1.books.show', 'invalid-id'));
 
