@@ -133,7 +133,7 @@ middleware: `auth`
 
 | Method | URI | Controller | Action | Route Name | Middleware | Policy |
 | --- | --- | --- | --- | --- | --- | --- |
-| POST | `/reviews/{review}/like` | `ReviewLikeController` | `toggle` | `review-likes.toggle` | `auth` | ― |
+| POST | `/reviews/{review}/like` | `ReviewLikeController` | `toggle` | `reviews.like` | `auth` | ― |
 
 ### 補足
 
