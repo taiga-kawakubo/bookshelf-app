@@ -57,7 +57,7 @@ class BookStoreTest extends TestCase
         ], $override);
     }
 
-    public function test_書籍登録APIは有効な値で書籍とジャンルを登録する(): void
+    public function test_書籍登録_ap_iは有効な値で書籍とジャンルを登録する(): void
     {
         $payload = $this->validData([
             'genres' => [
@@ -136,7 +136,7 @@ class BookStoreTest extends TestCase
         ]);
     }
 
-    public function test_書籍登録APIは任意項目がnullでも登録できる(): void
+    public function test_書籍登録_ap_iは任意項目がnullでも登録できる(): void
     {
         $payload = $this->validData([
             'isbn' => '4234567890124',
@@ -167,7 +167,7 @@ class BookStoreTest extends TestCase
         ]);
     }
 
-    public function test_書籍登録APIは任意項目が未入力でも登録できる(): void
+    public function test_書籍登録_ap_iは任意項目が未入力でも登録できる(): void
     {
         $payload = $this->validData([
             'isbn' => '4234567890125',
@@ -198,7 +198,7 @@ class BookStoreTest extends TestCase
         ]);
     }
 
-    public function test_書籍登録APIはバリデーションエラー時に書籍とジャンル紐付けを保存しない(): void
+    public function test_書籍登録_ap_iはバリデーションエラー時に書籍とジャンル紐付けを保存しない(): void
     {
         $payload = $this->validData([
             'genres' => [],
@@ -221,7 +221,7 @@ class BookStoreTest extends TestCase
         $this->assertDatabaseCount('book_genre', 0);
     }
 
-    public function test_存在しない登録者IDでは書籍登録できない(): void
+    public function test_存在しない登録者_i_dでは書籍登録できない(): void
     {
         $missingUserId = User::query()->max('id') + 1;
 
@@ -243,7 +243,7 @@ class BookStoreTest extends TestCase
         $this->assertDatabaseCount('book_genre', 0);
     }
 
-    public function test_ISBNが13桁ではない場合は書籍登録できない(): void
+    public function test_isb_nが13桁ではない場合は書籍登録できない(): void
     {
         $payload = $this->validData([
             'isbn' => '123456789012',
@@ -262,7 +262,7 @@ class BookStoreTest extends TestCase
         $this->assertDatabaseCount('book_genre', 0);
     }
 
-    public function test_登録済みISBNでは書籍登録できない(): void
+    public function test_登録済み_isb_nでは書籍登録できない(): void
     {
         $existingOwner = User::factory()->create();
 
@@ -315,7 +315,7 @@ class BookStoreTest extends TestCase
         $this->assertDatabaseCount('book_genre', 0);
     }
 
-    public function test_存在しないジャンルIDでは書籍登録できない(): void
+    public function test_存在しないジャンル_i_dでは書籍登録できない(): void
     {
         $payload = $this->validData([
             'isbn' => '4234567890127',
