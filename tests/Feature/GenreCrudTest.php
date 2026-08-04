@@ -756,7 +756,7 @@ class GenreCrudTest extends TestCase
     |--------------------------------------------------------------------------
     */
 
-    public function test_存在しないジャンル_i_dの詳細画面は404になる(): void
+    public function test_存在しないジャンルの詳細画面は404になる(): void
     {
         $user = User::factory()->create();
 

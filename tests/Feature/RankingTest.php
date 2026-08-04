@@ -77,8 +77,7 @@ class RankingTest extends TestCase
                 && $bookFromView->is($book)
                 && (float) $bookFromView->reviews_avg_rating === 4.5
                 && (int) $bookFromView->reviews_count === 2;
-        }
-        );
+        });
     }
 
     public function test_レビュー平均評価が高い順に表示される(): void
@@ -132,8 +131,7 @@ class RankingTest extends TestCase
                 $middleBook->id,
                 $lowBook->id,
             ];
-        }
-        );
+        });
 
         $response->assertSeeTextInOrder([
             $highBook->title,
@@ -202,8 +200,7 @@ class RankingTest extends TestCase
                 && (int) $booksById->get($firstTieBook->id)->rank === 2
                 && (int) $booksById->get($secondTieBook->id)->rank === 2
                 && (int) $booksById->get($thirdPlaceBook->id)->rank === 3;
-        }
-        );
+        });
     }
 
     public function test_同じ平均評価の中ではレビュー数が多い書籍が先に表示される(): void
@@ -260,8 +257,7 @@ class RankingTest extends TestCase
                 $manyReviewsBook->id,
                 $fewReviewsBook->id,
             ];
-        }
-        );
+        });
 
         $response->assertSeeTextInOrder([
             $manyReviewsBook->title,
@@ -324,8 +320,7 @@ class RankingTest extends TestCase
 
             return $bookIds === [$newBook->id, $oldBook->id]
                 && $ranks === [1, 1];
-        }
-        );
+        });
     }
 
     public function test_レビューがない書籍はランキングに表示されない(): void
@@ -363,8 +358,7 @@ class RankingTest extends TestCase
                 && ! $rankedBooks->contains(
                     fn (Book $book): bool => $book->is($bookWithoutReview)
                 );
-        }
-        );
+        });
     }
 
     public function test_レビュー付き書籍が11冊ある場合は上位10冊だけ表示される(): void
@@ -421,8 +415,7 @@ class RankingTest extends TestCase
             return $rankedBooks->count() === 10
                 && $actualBookIds === $expectedBookIds
                 && ! $rankedBooks->contains(fn (Book $book): bool => $book->is($eleventhBook));
-        }
-        );
+        });
     }
 
     public function test_ランキング対象書籍がない場合は空状態メッセージが表示される(): void

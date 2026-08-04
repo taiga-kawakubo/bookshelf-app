@@ -66,7 +66,7 @@ class StoreBookRequestTest extends TestCase
         $this->assertFalse($validator->fails());
     }
 
-    public function test_説明と画像_ur_lが空でもバリデーションを通過する(): void
+    public function test_説明と画像urlが空でもバリデーションを通過する(): void
     {
         $validator = $this->makeValidator(
             $this->validData([
@@ -218,7 +218,7 @@ class StoreBookRequestTest extends TestCase
         );
     }
 
-    public function test_image_urlが_ur_l形式でない場合はバリデーションエラーになる(): void
+    public function test_image_urlがurl形式でない場合はバリデーションエラーになる(): void
     {
         $validator = $this->makeValidator(
             $this->validData([
@@ -232,7 +232,7 @@ class StoreBookRequestTest extends TestCase
         );
     }
 
-    public function test_画像_ur_lが文字列でない場合はバリデーションエラーになる(): void
+    public function test_画像urlが文字列でない場合はバリデーションエラーになる(): void
     {
         $validator = $this->makeValidator(
             $this->validData([
@@ -278,7 +278,7 @@ class StoreBookRequestTest extends TestCase
         );
     }
 
-    public function test_ジャンル_i_dが整数でない場合はバリデーションエラーになる(): void
+    public function test_ジャンルが整数でない場合はバリデーションエラーになる(): void
     {
         $validator = $this->makeValidator(
             $this->validData([
@@ -401,7 +401,7 @@ class StoreBookRequestTest extends TestCase
         );
     }
 
-    public function test_画像_ur_lが512文字の場合はバリデーションを通過する(): void
+    public function test_画像urlが512文字の場合はバリデーションを通過する(): void
     {
         $baseUrl = 'https://example.com/';
         $imageUrl = $baseUrl.str_repeat(
@@ -420,7 +420,7 @@ class StoreBookRequestTest extends TestCase
         $this->assertFalse($validator->fails());
     }
 
-    public function test_画像_ur_lが513文字の場合はバリデーションエラーになる(): void
+    public function test_画像urlが513文字の場合はバリデーションエラーになる(): void
     {
         $baseUrl = 'https://example.com/';
         $imageUrl = $baseUrl.str_repeat(

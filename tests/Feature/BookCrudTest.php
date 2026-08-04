@@ -174,7 +174,7 @@ class BookCrudTest extends TestCase
         $this->assertDatabaseCount('book_genre', 0);
     }
 
-    public function test_isb_nが13桁でない場合は書籍を登録できない(): void
+    public function test_isbnが13桁でない場合は書籍を登録できない(): void
     {
         $user = User::factory()->create();
 
@@ -194,7 +194,7 @@ class BookCrudTest extends TestCase
         $this->assertDatabaseCount('book_genre', 0);
     }
 
-    public function test_登録済み_isb_nでは書籍を登録できない(): void
+    public function test_登録済みisbnでは書籍を登録できない(): void
     {
         $user = User::factory()->create();
 
@@ -439,7 +439,7 @@ class BookCrudTest extends TestCase
         $this->assertDatabaseCount('book_genre', 1);
     }
 
-    public function test_別の書籍が使用している_isb_nには更新できない(): void
+    public function test_別の書籍が使用しているisbnには更新できない(): void
     {
         $owner = User::factory()->create();
 

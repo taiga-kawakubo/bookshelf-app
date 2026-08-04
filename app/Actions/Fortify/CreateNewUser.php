@@ -14,7 +14,7 @@ class CreateNewUser implements CreatesNewUsers
     use PasswordValidationRules;
 
     /**
-     * Validate and create a newly registered user.
+     * 新規登録ユーザーの入力値を検証し、ユーザーを作成する。
      *
      * @param  array<string, string>  $input
      *

@@ -11,6 +11,9 @@ use Illuminate\View\View;
 
 class ReviewController extends Controller
 {
+    /**
+     * レビューの登録
+     */
     public function store(StoreReviewRequest $request, Book $book): RedirectResponse
     {
         $validated = $request->validated();
@@ -40,6 +43,9 @@ class ReviewController extends Controller
             ->with('success', 'レビューを投稿しました。');
     }
 
+    /**
+     * レビューの編集画面を表示
+     */
     public function edit(Review $review): View
     {
         $this->authorize('update', $review);
@@ -47,6 +53,9 @@ class ReviewController extends Controller
         return view('reviews.edit', compact('review'));
     }
 
+    /**
+     * レビューの更新
+     */
     public function update(UpdateReviewRequest $request, Review $review): RedirectResponse
     {
         $this->authorize('update', $review);
@@ -62,6 +71,9 @@ class ReviewController extends Controller
             ->with('success', 'レビューを更新しました。');
     }
 
+    /**
+     * レビューの削除
+     */
     public function destroy(Review $review): RedirectResponse
     {
         $this->authorize('delete', $review);

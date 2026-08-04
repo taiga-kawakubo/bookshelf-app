@@ -7,6 +7,9 @@ use Illuminate\View\View;
 
 class RankingController extends Controller
 {
+    /**
+     * ランキング画面の表示
+     */
     public function index(): View
     {
         $rankedBooks = Book::query()

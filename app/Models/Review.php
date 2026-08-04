@@ -11,6 +11,11 @@ class Review extends Model
 {
     use HasFactory;
 
+    /**
+     * 複数代入可能な属性
+     *
+     * @var array<int, string>
+     */
     protected $fillable = [
         'book_id',
         'user_id',
@@ -20,6 +25,8 @@ class Review extends Model
 
     /**
      * キャストする値
+     *
+     * @var array<string, string>
      */
     protected $casts = [
         'rating' => 'integer',

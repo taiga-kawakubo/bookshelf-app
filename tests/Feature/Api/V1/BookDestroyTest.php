@@ -12,7 +12,7 @@ class BookDestroyTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_書籍削除_ap_iは指定した書籍と関連データを削除する(): void
+    public function test_書籍削除は指定した書籍と関連データを削除する(): void
     {
         $bookOwner = User::factory()->create();
         $reviewer = User::factory()->create();
@@ -110,7 +110,7 @@ class BookDestroyTest extends TestCase
         ]);
     }
 
-    public function test_存在しない書籍削除_ap_iは404を返す(): void
+    public function test_存在しない書籍削除は404を返す(): void
     {
         $bookOwner = User::factory()->create();
 

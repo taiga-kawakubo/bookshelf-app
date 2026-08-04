@@ -55,6 +55,7 @@ class UpdateGenreRequestTest extends TestCase
 
         // Routeのパラメータ配列を初期化する
         $route->bind($request);
+
         // bookパラメータを更新対象genreモデルへ置き換える
         $route->setParameter('genre', $this->genre);
 
@@ -68,8 +69,7 @@ class UpdateGenreRequestTest extends TestCase
     }
 
     /**
-     * 正常なジャンル入力データを作成し、
-     * 必要な項目だけ上書きできるようにする
+     * 正常なジャンル入力データを作成し、必要な項目だけ上書きできるようにする
      */
     private function validData(array $override = []): array
     {

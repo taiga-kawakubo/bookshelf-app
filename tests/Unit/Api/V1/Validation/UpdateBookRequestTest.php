@@ -96,7 +96,7 @@ class UpdateBookRequestTest extends TestCase
         $this->assertFalse($validator->fails());
     }
 
-    public function test_説明と画像_ur_lがnullでもバリデーションを通過する(): void
+    public function test_説明と画像urlがnullでもバリデーションを通過する(): void
     {
         $validator = $this->makeValidator(
             $this->validData([
@@ -108,7 +108,7 @@ class UpdateBookRequestTest extends TestCase
         $this->assertFalse($validator->fails());
     }
 
-    public function test_更新対象自身の_isb_nはそのまま使用できる(): void
+    public function test_更新対象自身のisbnはそのまま使用できる(): void
     {
         $validator = $this->makeValidator(
             $this->validData([
@@ -239,7 +239,7 @@ class UpdateBookRequestTest extends TestCase
         );
     }
 
-    public function test_isb_nが13桁でない場合はバリデーションエラーになる(): void
+    public function test_isbnが13桁でない場合はバリデーションエラーになる(): void
     {
         $invalidIsbns = [
             str_repeat('1', 12),
@@ -260,7 +260,7 @@ class UpdateBookRequestTest extends TestCase
         }
     }
 
-    public function test_isb_nが13文字でも数字でない場合はバリデーションエラーになる(): void
+    public function test_isbnが13文字でも数字でない場合はバリデーションエラーになる(): void
     {
         $validator = $this->makeValidator(
             $this->validData([
@@ -274,7 +274,7 @@ class UpdateBookRequestTest extends TestCase
         );
     }
 
-    public function test_別の書籍が使用している_isb_nには変更できない(): void
+    public function test_別の書籍が使用しているisbnには変更できない(): void
     {
         $otherBook = Book::query()->create([
             'user_id' => $this->user->id,
@@ -351,7 +351,7 @@ class UpdateBookRequestTest extends TestCase
         );
     }
 
-    public function test_画像_ur_lが文字列でない場合はバリデーションエラーになる(): void
+    public function test_画像urlが文字列でない場合はバリデーションエラーになる(): void
     {
         $validator = $this->makeValidator(
             $this->validData([
@@ -365,7 +365,7 @@ class UpdateBookRequestTest extends TestCase
         );
     }
 
-    public function test_画像_ur_lが_ur_l形式でない場合はバリデーションエラーになる(): void
+    public function test_画像urlがurl形式でない場合はバリデーションエラーになる(): void
     {
         $validator = $this->makeValidator(
             $this->validData([
@@ -379,7 +379,7 @@ class UpdateBookRequestTest extends TestCase
         );
     }
 
-    public function test_画像_ur_lが512文字の場合はバリデーションを通過する(): void
+    public function test_画像urlが512文字の場合はバリデーションを通過する(): void
     {
         $baseUrl = 'https://example.com/';
 
@@ -396,7 +396,7 @@ class UpdateBookRequestTest extends TestCase
         $this->assertFalse($validator->fails());
     }
 
-    public function test_画像_ur_lが513文字の場合はバリデーションエラーになる(): void
+    public function test_画像urlが513文字の場合はバリデーションエラーになる(): void
     {
         $baseUrl = 'https://example.com/';
 
@@ -444,7 +444,7 @@ class UpdateBookRequestTest extends TestCase
         );
     }
 
-    public function test_ジャンル_i_dが整数でない場合はバリデーションエラーになる(): void
+    public function test_ジャンルが整数でない場合はバリデーションエラーになる(): void
     {
         $validator = $this->makeValidator(
             $this->validData([
@@ -458,7 +458,7 @@ class UpdateBookRequestTest extends TestCase
         );
     }
 
-    public function test_同じジャンル_i_dが重複している場合はバリデーションエラーになる(): void
+    public function test_同じジャンルが重複している場合はバリデーションエラーになる(): void
     {
         $validator = $this->makeValidator(
             $this->validData([
@@ -477,7 +477,7 @@ class UpdateBookRequestTest extends TestCase
         );
     }
 
-    public function test_存在しないジャンル_i_dの場合はバリデーションエラーになる(): void
+    public function test_存在しないジャンルの場合はバリデーションエラーになる(): void
     {
         $notExistingGenreId =
             (Genre::query()->max('id') ?? 0) + 1;

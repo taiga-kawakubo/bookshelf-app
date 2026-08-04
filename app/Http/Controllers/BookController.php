@@ -12,6 +12,9 @@ use Illuminate\View\View;
 
 class BookController extends Controller
 {
+    /**
+     * 書籍一覧の表示
+     */
     public function index(): View
     {
         $books = Book::query()
@@ -22,6 +25,9 @@ class BookController extends Controller
         return view('books.index', compact('books'));
     }
 
+    /**
+     * 書籍の作成画面を表示
+     */
     public function create(): View
     {
         $genres = Genre::query()->get();
@@ -29,6 +35,9 @@ class BookController extends Controller
         return view('books.create', compact('genres'));
     }
 
+    /**
+     * 書籍の登録
+     */
     public function store(StoreBookRequest $request): RedirectResponse
     {
         $validated = $request->validated();
@@ -52,6 +61,9 @@ class BookController extends Controller
             ->with('success', '書籍を登録しました。');
     }
 
+    /**
+     * 書籍詳細の表示
+     */
     public function show(Book $book): View
     {
         $book->load([
@@ -63,6 +75,9 @@ class BookController extends Controller
         return view('books.show', compact('book'));
     }
 
+    /**
+     * 書籍の編集画面を表示
+     */
     public function edit(Book $book): View
     {
         $this->authorize('update', $book);
@@ -72,6 +87,9 @@ class BookController extends Controller
         return view('books.edit', compact('book', 'genres'));
     }
 
+    /**
+     * 書籍の更新
+     */
     public function update(UpdateBookRequest $request, Book $book): RedirectResponse
     {
         $this->authorize('update', $book);
@@ -95,6 +113,9 @@ class BookController extends Controller
             ->with('success', '書籍を更新しました。');
     }
 
+    /**
+     * 書籍の削除
+     */
     public function destroy(Book $book): RedirectResponse
     {
         $this->authorize('delete', $book);
