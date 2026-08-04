@@ -29,6 +29,8 @@ class Book extends Model
 
     /**
      * キャストする値
+     *
+     * @var array<string, string>
      */
     protected $casts = [
         'published_date' => 'date',

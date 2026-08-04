@@ -56,7 +56,6 @@ class BookController extends Controller
             ])
             ->response()
             ->setStatusCode(201);
-
     }
 
     /**

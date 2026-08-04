@@ -15,9 +15,9 @@
                         <div class="space-y-4">
                             @foreach($rankedBooks as $index => $book)
                                 <a href="{{ route('books.show', $book) }}" class="block hover:bg-gray-50 transition rounded-lg">
-                                    <div class="flex items-center p-4 border rounded-lg {{ $index < 3 ? 'border-yellow-300 bg-yellow-50' : 'border-gray-200' }}">
+                                    <div class="flex items-center p-4 border rounded-lg {{ $book->rank <= 3 ? 'border-yellow-300 bg-yellow-50' : 'border-gray-200' }}">
                                         <!-- 順位 -->
-                                        <div class="flex-shrink-0 w-12 h-12 flex items-center justify-center rounded-full {{ $index === 0 ? 'bg-yellow-400 text-white' : ($index === 1 ? 'bg-gray-300 text-white' : ($index === 2 ? 'bg-amber-600 text-white' : 'bg-gray-100 text-gray-600')) }} font-bold text-xl mr-4">
+                                        <div class="flex-shrink-0 w-12 h-12 flex items-center justify-center rounded-full {{ $book->rank === 1 ? 'bg-yellow-400 text-white' : ($book->rank === 2 ? 'bg-gray-300 text-white' : ($book->rank === 3 ? 'bg-amber-600 text-white' : 'bg-gray-100 text-gray-600')) }} font-bold text-xl mr-4">
                                             {{ $book->rank }}
                                         </div>
 
@@ -58,7 +58,7 @@
                                         <!-- 評価バッジ -->
                                         <div class="flex-shrink-0 ml-4">
                                             <div class="text-center">
-                                                <div class="text-2xl font-bold {{ $index < 3 ? 'text-yellow-500' : 'text-gray-600' }}">
+                                                <div class="text-2xl font-bold {{ $book->rank <= 3 ? 'text-yellow-500' : 'text-gray-600' }}">
                                                     {{ number_format($book->reviews_avg_rating, 1) }}
                                                 </div>
                                                 <div class="text-xs text-gray-500">平均評価</div>

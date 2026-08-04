@@ -8,17 +8,19 @@ use Illuminate\Validation\Rules\Password;
 trait PasswordValidationRules
 {
     /**
-     * Get the validation rules used to validate passwords.
+     * パスワードに適用するバリデーションルールを取得
      *
      * @return array<int, Rule|array<mixed>|string>
      */
     protected function passwordRules(): array
     {
-        return ['required',
+        return [
+            'required',
             'string',
             Password::min(8)
                 ->numbers()
                 ->mixedCase(),
-            'confirmed'];
+            'confirmed',
+        ];
     }
 }

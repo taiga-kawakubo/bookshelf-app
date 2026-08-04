@@ -8,6 +8,9 @@ use Illuminate\Http\Request;
 
 class ReviewLikeController extends Controller
 {
+    /**
+     * レビューの「いいね」登録・解除
+     */
     public function toggle(Request $request, Review $review): RedirectResponse
     {
         $result = $request

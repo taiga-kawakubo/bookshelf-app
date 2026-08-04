@@ -12,7 +12,7 @@ class BookIndexTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_書籍一覧_ap_iは書籍情報を_jso_nで返す(): void
+    public function test_書籍一覧は書籍情報をjson形式で返す(): void
     {
         $bookOwner = User::factory()->create();
         $firstReviewer = User::factory()->create();
@@ -106,7 +106,7 @@ class BookIndexTest extends TestCase
         $this->assertNull($bookWithoutReviewData['average_rating']);
     }
 
-    public function test_書籍一覧_ap_iは書籍がない場合に空配列を返す(): void
+    public function test_書籍一覧は書籍がない場合に空配列を返す(): void
     {
         $response = $this->getJson(route('api.v1.books.index'));
 
@@ -116,7 +116,7 @@ class BookIndexTest extends TestCase
         $response->assertJsonPath('meta.total', 0);
     }
 
-    public function test_書籍一覧_ap_iはper_pageで指定した件数だけ返す(): void
+    public function test_書籍一覧はper_pageで指定した件数だけ返す(): void
     {
         $bookOwner = User::factory()->create();
 
@@ -140,7 +140,7 @@ class BookIndexTest extends TestCase
         $response->assertJsonPath('meta.total', 3);
     }
 
-    public function test_書籍一覧_ap_iは不正なページ指定の場合バリデーションエラーを返す(): void
+    public function test_書籍一覧は不正なページ指定の場合バリデーションエラーを返す(): void
     {
         $response = $this->getJson(
             route('api.v1.books.index', [

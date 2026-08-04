@@ -9,6 +9,9 @@ use Illuminate\View\View;
 
 class FavoriteController extends Controller
 {
+    /**
+     * 書籍のお気に入り一覧画面の表示
+     */
     public function index(Request $request): View
     {
         $books = $request
@@ -21,6 +24,9 @@ class FavoriteController extends Controller
         return view('favorites.index', compact('books'));
     }
 
+    /**
+     * 書籍の「お気に入り」登録・解除
+     */
     public function toggle(Request $request, Book $book): RedirectResponse
     {
         $result = $request

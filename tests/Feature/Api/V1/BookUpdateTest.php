@@ -79,7 +79,7 @@ class BookUpdateTest extends TestCase
         ], $override);
     }
 
-    public function test_書籍更新_ap_iは有効な値で書籍とジャンルを更新する(): void
+    public function test_書籍更新は有効な値で書籍とジャンルを更新する(): void
     {
         $payload = $this->validData([
             'user_id' => $this->anotherUser->id,
@@ -163,7 +163,7 @@ class BookUpdateTest extends TestCase
         ]);
     }
 
-    public function test_書籍更新_ap_iは更新対象自身の_isb_nをそのまま使用できる(): void
+    public function test_書籍更新は更新対象自身のisbnをそのまま使用できる(): void
     {
         $payload = $this->validData([
             'isbn' => $this->book->isbn,
@@ -182,7 +182,7 @@ class BookUpdateTest extends TestCase
         ]);
     }
 
-    public function test_書籍更新_ap_iは任意項目をnullに更新できる(): void
+    public function test_書籍更新は任意項目をnullに更新できる(): void
     {
         $payload = $this->validData([
             'isbn' => '5234567890125',
@@ -205,7 +205,7 @@ class BookUpdateTest extends TestCase
         ]);
     }
 
-    public function test_書籍更新_ap_iは任意項目が未入力でも更新できる(): void
+    public function test_書籍更新は任意項目が未入力でも更新できる(): void
     {
         $payload = $this->validData([
             'isbn' => '5234567890126',
@@ -233,7 +233,7 @@ class BookUpdateTest extends TestCase
         ]);
     }
 
-    public function test_書籍更新_ap_iはバリデーションエラー時に書籍とジャンル紐付けを変更しない(): void
+    public function test_書籍更新はバリデーションエラー時に書籍とジャンル紐付けを変更しない(): void
     {
         $payload = $this->validData([
             'genres' => [],
@@ -270,7 +270,7 @@ class BookUpdateTest extends TestCase
         $this->assertDatabaseCount('book_genre', 1);
     }
 
-    public function test_別の書籍が使用している_isb_nには更新できない(): void
+    public function test_別の書籍が使用しているisbnには更新できない(): void
     {
         Book::factory()->create([
             'user_id' => $this->bookOwner->id,
@@ -303,7 +303,7 @@ class BookUpdateTest extends TestCase
         ]);
     }
 
-    public function test_isb_nが13桁ではない場合は書籍更新できない(): void
+    public function test_isbnが13桁ではない場合は書籍更新できない(): void
     {
         $payload = $this->validData([
             'isbn' => '123456789012',
@@ -347,7 +347,7 @@ class BookUpdateTest extends TestCase
         ]);
     }
 
-    public function test_存在しないジャンル_i_dでは書籍更新できない(): void
+    public function test_存在しないジャンルでは書籍更新できない(): void
     {
         $payload = $this->validData([
             'isbn' => '5234567890129',
@@ -372,7 +372,7 @@ class BookUpdateTest extends TestCase
         ]);
     }
 
-    public function test_存在しない書籍更新_ap_iは404を返す(): void
+    public function test_存在しない書籍更新は404を返す(): void
     {
         $response = $this->putJson(
             route('api.v1.books.update', 999999),

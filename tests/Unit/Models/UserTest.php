@@ -15,6 +15,7 @@ class UserTest extends TestCase
     public function test_このユーザーと結びつく書籍を取得する(): void
     {
         $user = User::factory()->create();
+
         $book = Book::create([
             'user_id' => $user->id,
             'title' => 'テスト書籍',
@@ -26,6 +27,7 @@ class UserTest extends TestCase
         ]);
 
         $user->load('books');
+
         $this->assertCount(1, $user->books);
 
         $this->assertTrue(
@@ -35,10 +37,8 @@ class UserTest extends TestCase
 
     public function test_このユーザーと結びつくレビューを取得する(): void
     {
-        // レビュー投稿者
         $user = User::factory()->create();
 
-        // 書籍登録者
         $bookOwner = User::factory()->create();
 
         $book = Book::create([
@@ -113,10 +113,8 @@ class UserTest extends TestCase
 
     public function test_このユーザーと結びつくレビューのいいねを取得する(): void
     {
-        // レビューへ「いいね」するユーザー
         $likingUser = User::factory()->create();
 
-        // 書籍を登録するユーザー
         $bookOwner = User::factory()->create();
 
         $book = Book::create([
@@ -129,7 +127,6 @@ class UserTest extends TestCase
             'image_url' => 'https://example.com/book.jpg',
         ]);
 
-        // レビュー投稿者を2人作成
         $reviewAuthor1 = User::factory()->create();
         $reviewAuthor2 = User::factory()->create();
 

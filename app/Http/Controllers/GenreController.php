@@ -10,6 +10,9 @@ use Illuminate\View\View;
 
 class GenreController extends Controller
 {
+    /**
+     * ジャンル一覧の表示
+     */
     public function index(): View
     {
         $genres = Genre::query()
@@ -20,11 +23,17 @@ class GenreController extends Controller
         return view('genres.index', compact('genres'));
     }
 
+    /**
+     * ジャンルの作成画面の表示
+     */
     public function create(): View
     {
         return view('genres.create');
     }
 
+    /**
+     * ジャンルの登録
+     */
     public function store(StoreGenreRequest $request): RedirectResponse
     {
         $validated = $request->validated();
@@ -37,6 +46,9 @@ class GenreController extends Controller
             ->with('success', 'ジャンルを登録しました。');
     }
 
+    /**
+     * ジャンルの詳細画面の表示
+     */
     public function show(Genre $genre): View
     {
         $books = $genre->books()
@@ -45,11 +57,17 @@ class GenreController extends Controller
         return view('genres.show', compact('genre', 'books'));
     }
 
+    /**
+     * ジャンルの編集画面の表示
+     */
     public function edit(Genre $genre): View
     {
         return view('genres.edit', compact('genre'));
     }
 
+    /**
+     * ジャンルの更新
+     */
     public function update(UpdateGenreRequest $request, Genre $genre): RedirectResponse
     {
         $validated = $request->validated();
@@ -62,6 +80,9 @@ class GenreController extends Controller
             ->with('success', 'ジャンルを更新しました。');
     }
 
+    /**
+     * ジャンルの削除
+     */
     public function destroy(Genre $genre): RedirectResponse
     {
         if ($genre->books()->exists()) {
