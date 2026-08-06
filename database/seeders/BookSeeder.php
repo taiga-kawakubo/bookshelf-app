@@ -15,9 +15,9 @@ class BookSeeder extends Seeder
      */
     public function run(): void
     {
-        $user = User::first();
+        $users = User::query()->get();
 
-        if (! $user) {
+        if ($users->isEmpty()) {
             throw new RuntimeException(
                 'BookSeederを実行する前にUserSeederを実行してください。'
             );
@@ -125,15 +125,17 @@ class BookSeeder extends Seeder
             ],
         ];
 
-        foreach ($books as $bookData) {
-            $genreNames = $bookData['genres'];
+        collect($books)->each(function(array $bookData, int $index) use ($users) {
+            $genreNames = collect($bookData['genres'] );
 
-            $book = Book::firstOrCreate(
+            $owner = $users->values()->get($index % $users->count());
+
+            $book =Book::firstOrCreate(
                 [
                     'isbn' => $bookData['isbn'],
                 ],
                 [
-                    'user_id' => $user->id,
+                    'user_id' => $owner->id,
                     'title' => $bookData['title'],
                     'author' => $bookData['author'],
                     'published_date' => $bookData['published_date'],
@@ -144,16 +146,15 @@ class BookSeeder extends Seeder
 
             $genreIds = Genre::query()
                 ->whereIn('name', $genreNames)
-                ->pluck('id')
-                ->all();
-
-            if (count($genreIds) !== count($genreNames)) {
+                ->pluck('id');
+            
+            if($genreIds->count() !== $genreNames->count()) {
                 throw new RuntimeException(
                     "{$book->title}に必要なジャンルが登録されていません。"
                 );
             }
 
-            $book->genres()->sync($genreIds);
-        }
+            $book->genres()->sync($genreIds->all());
+        });
     }
 }

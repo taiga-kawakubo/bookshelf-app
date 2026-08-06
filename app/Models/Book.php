@@ -41,7 +41,7 @@ class Book extends Model
      */
     public function genres(): BelongsToMany
     {
-        return $this->belongsToMany(Genre::class)
+        return $this->BelongsToMany(Genre::class)
             ->withTimestamps();
     }
 
@@ -68,5 +68,13 @@ class Book extends Model
     {
         return $this->belongsToMany(User::class, 'favorites')
             ->withTimestamps();
+    }
+
+    /**
+     * このユーザーと結びつく読書計画を取得
+     */
+    public function readingPlan(): HasMany
+    {
+        return $this->hasMany(ReadingPlan::class);
     }
 }

@@ -19,6 +19,7 @@ class AuthServiceProvider extends ServiceProvider
     protected $policies = [
         Book::class => BookPolicy::class,
         Review::class => ReviewPolicy::class,
+        DatabaseNotification::class => NotificationPolicy::class,
     ];
 
     /**
