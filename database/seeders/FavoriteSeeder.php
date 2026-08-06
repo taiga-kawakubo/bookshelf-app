@@ -46,7 +46,7 @@ class FavoriteSeeder extends Seeder
             ],
         ];
 
-        foreach ($favorites as $userEmail => $bookIsbns) {
+        collect($favorites)->each(function(array $bookIsbns, string $userEmail) {
             $user = User::query()
                 ->where('email', $userEmail)
                 ->firstOrFail();
@@ -58,6 +58,6 @@ class FavoriteSeeder extends Seeder
 
             $user->favoriteBooks()
                 ->syncWithoutDetaching($bookIds);
-        }
+        });
     }
 }

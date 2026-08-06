@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
+use Laravel\Sanctum\HasApiTokens;
 
 class UserSeeder extends Seeder
 {
@@ -36,7 +37,7 @@ class UserSeeder extends Seeder
             ],
         ];
 
-        foreach ($users as $userData) {
+        collect($users)->each(function($userData) {
             User::firstOrCreate(
                 [
                     'email' => $userData['email'],
@@ -46,6 +47,6 @@ class UserSeeder extends Seeder
                     'password' => Hash::make('password'),
                 ]
             );
-        }
+        });
     }
 }
