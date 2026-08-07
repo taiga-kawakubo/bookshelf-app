@@ -3,6 +3,7 @@
 use App\Http\Controllers\BookController;
 use App\Http\Controllers\FavoriteController;
 use App\Http\Controllers\GenreController;
+use App\Http\Controllers\IsbnLookupController;
 use App\Http\Controllers\RankingController;
 use App\Http\Controllers\ReviewController;
 use App\Http\Controllers\ReviewLikeController;
@@ -118,18 +119,21 @@ Route::middleware('auth')->group(function () {
         ->whereNumber('book')
         ->name('favorites.toggle');
 
-    //マイレポート
-    Route::get('/reports',fn() => 'レポート画面（準備中)')
+    // マイレポート
+    Route::get('/reports', fn () => 'レポート画面（準備中)')
         ->name('reports.index');
-    
-    //読書計画一覧画面の表示
-    Route::get('/reading-plans',fn() => '読書計画画面（準備中)')
+
+    // 読書計画一覧画面の表示
+    Route::get('/reading-plans', fn () => '読書計画画面（準備中)')
         ->name('reading-plans.index');
 
-    ////通知一覧の表示
-    Route::get('/notifications',fn() => '通知一覧画面（準備中)')
+    // 通知一覧の表示
+    Route::get('/notifications', fn () => '通知一覧画面（準備中)')
         ->name('notifications.index');
 
+    // isbnによる登録
+    Route::get('/books/isbn/{isbn}', [IsbnLookupController::class, 'show'])
+        ->name('books.isbn.show');
 });
 
 /*

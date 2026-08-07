@@ -25,7 +25,7 @@ class GenreSeeder extends Seeder
             '旅行',
         ];
 
-        collect($genres)->each(function(string $genreName) {
+        collect($genres)->each(function (string $genreName) {
             Genre::firstOrCreate([
                 'name' => $genreName,
             ]);

@@ -29,36 +29,36 @@ class BookController extends Controller
             $keyword = $validated['keyword'];
 
             $query->where(function ($query) use ($keyword) {
-                $query->where('title', 'like', '%' . $keyword . '%')
-                    ->orWhere('author', 'like', '%' . $keyword . '%')
-                    ->orWhereRaw("CONCAT(title, author) LIKE ?", ['%' . $keyword . '%'])
-                    ->orWhereRaw("CONCAT(title, ' ', author) LIKE ?", ['%' . $keyword . '%'])
-                    ->orWhereRaw("CONCAT(title, '　', author) LIKE ?", ['%' . $keyword . '%'])
-                    ->orWhereRaw("CONCAT(author, title) LIKE ?", ['%' . $keyword . '%'])
-                    ->orWhereRaw("CONCAT(author, ' ', title) LIKE ?", ['%' . $keyword . '%'])
-                    ->orWhereRaw("CONCAT(author, '　', title) LIKE ?", ['%' . $keyword . '%']);
+                $query->where('title', 'like', '%'.$keyword.'%')
+                    ->orWhere('author', 'like', '%'.$keyword.'%')
+                    ->orWhereRaw('CONCAT(title, author) LIKE ?', ['%'.$keyword.'%'])
+                    ->orWhereRaw("CONCAT(title, ' ', author) LIKE ?", ['%'.$keyword.'%'])
+                    ->orWhereRaw("CONCAT(title, '　', author) LIKE ?", ['%'.$keyword.'%'])
+                    ->orWhereRaw('CONCAT(author, title) LIKE ?', ['%'.$keyword.'%'])
+                    ->orWhereRaw("CONCAT(author, ' ', title) LIKE ?", ['%'.$keyword.'%'])
+                    ->orWhereRaw("CONCAT(author, '　', title) LIKE ?", ['%'.$keyword.'%']);
             });
         }
 
-        //ジャンルフィルタ
-        if(! empty($validated['genre'])){
+        // ジャンルフィルタ
+        if (! empty($validated['genre'])) {
             $genreId = $validated['genre'];
 
-            $query->whereHas('genres',function($query) use ($genreId){
-                $query->where('genres.id',$genreId);
+            $query->whereHas('genres', function ($query) use ($genreId) {
+                $query->where('genres.id', $genreId);
             });
         }
 
-        //ソート
+        // ソート
         $sort = $validated['sort'] ?? 'newest';
 
-        if($sort === 'title'){
+        if ($sort === 'title') {
             $query->orderBy('title', 'asc');
-        }elseif ($sort === 'rating') {
+        } elseif ($sort === 'rating') {
             $query->orderByRaw('reviews_avg_rating IS NULL ASC')
                 ->orderByDesc('reviews_avg_rating')
                 ->orderByDesc('created_at');
-        }elseif ($sort === 'oldest') {
+        } elseif ($sort === 'oldest') {
             $query->orderBy('created_at', 'asc');
         } else {
             $query->orderBy('created_at', 'desc');

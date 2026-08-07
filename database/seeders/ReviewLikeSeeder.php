@@ -20,8 +20,7 @@ class ReviewLikeSeeder extends Seeder
             ->orderBy('id')
             ->get();
 
-
-        $reviews->each(function($review, int $index)use($userIds) {
+        $reviews->each(function ($review, int $index) use ($userIds) {
             $likeCount = $index % 4;
 
             $likerIds = $userIds
