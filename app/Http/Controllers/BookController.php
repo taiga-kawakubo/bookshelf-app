@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\IndexBookRequest;
 use App\Http\Requests\StoreBookRequest;
 use App\Http\Requests\UpdateBookRequest;
 use App\Models\Book;
@@ -15,14 +16,59 @@ class BookController extends Controller
     /**
      * 書籍一覧の表示
      */
-    public function index(): View
+    public function index(IndexBookRequest $request): View
     {
-        $books = Book::query()
+        $query = Book::query()
             ->with('genres')
-            ->withAvg('reviews', 'rating')
-            ->paginate(10);
+            ->withAvg('reviews', 'rating');
 
-        return view('books.index', compact('books'));
+        $validated = $request->validated();
+
+        // タイトル・著者名検索
+        if (! empty($validated['keyword'])) {
+            $keyword = $validated['keyword'];
+
+            $query->where(function ($query) use ($keyword) {
+                $query->where('title', 'like', '%' . $keyword . '%')
+                    ->orWhere('author', 'like', '%' . $keyword . '%')
+                    ->orWhereRaw("CONCAT(title, author) LIKE ?", ['%' . $keyword . '%'])
+                    ->orWhereRaw("CONCAT(title, ' ', author) LIKE ?", ['%' . $keyword . '%'])
+                    ->orWhereRaw("CONCAT(title, '　', author) LIKE ?", ['%' . $keyword . '%'])
+                    ->orWhereRaw("CONCAT(author, title) LIKE ?", ['%' . $keyword . '%'])
+                    ->orWhereRaw("CONCAT(author, ' ', title) LIKE ?", ['%' . $keyword . '%'])
+                    ->orWhereRaw("CONCAT(author, '　', title) LIKE ?", ['%' . $keyword . '%']);
+            });
+        }
+
+        //ジャンルフィルタ
+        if(! empty($validated['genre'])){
+            $genreId = $validated['genre'];
+
+            $query->whereHas('genres',function($query) use ($genreId){
+                $query->where('genres.id',$genreId);
+            });
+        }
+
+        //ソート
+        $sort = $validated['sort'] ?? 'newest';
+
+        if($sort === 'title'){
+            $query->orderBy('title', 'asc');
+        }elseif ($sort === 'rating') {
+            $query->orderByRaw('reviews_avg_rating IS NULL ASC')
+                ->orderByDesc('reviews_avg_rating')
+                ->orderByDesc('created_at');
+        }elseif ($sort === 'oldest') {
+            $query->orderBy('created_at', 'asc');
+        } else {
+            $query->orderBy('created_at', 'desc');
+        }
+
+        $books = $query->paginate(10)->withQueryString();
+
+        $genres = Genre::orderBy('name')->get();
+
+        return view('books.index', compact('books', 'genres'));
     }
 
     /**

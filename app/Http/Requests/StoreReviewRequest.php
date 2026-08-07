@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 
 class StoreReviewRequest extends FormRequest
@@ -14,10 +15,10 @@ class StoreReviewRequest extends FormRequest
         return true;
     }
 
-    /**
+/**
      * バリデーションルール
      *
-     * @return array<string, mixed>
+     * @return array<string, ValidationRule|array<mixed>|string>
      */
     public function rules(): array
     {

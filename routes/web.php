@@ -117,6 +117,19 @@ Route::middleware('auth')->group(function () {
     Route::post('/books/{book}/favorites', [FavoriteController::class, 'toggle'])
         ->whereNumber('book')
         ->name('favorites.toggle');
+
+    //マイレポート
+    Route::get('/reports',fn() => 'レポート画面（準備中)')
+        ->name('reports.index');
+    
+    //読書計画一覧画面の表示
+    Route::get('/reading-plans',fn() => '読書計画画面（準備中)')
+        ->name('reading-plans.index');
+
+    ////通知一覧の表示
+    Route::get('/notifications',fn() => '通知一覧画面（準備中)')
+        ->name('notifications.index');
+
 });
 
 /*

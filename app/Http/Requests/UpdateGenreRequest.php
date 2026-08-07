@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -18,7 +19,7 @@ class UpdateGenreRequest extends FormRequest
     /**
      * バリデーションルール
      *
-     * @return array<string, mixed>
+     * @return array<string, ValidationRule|array<mixed>|string>
      */
     public function rules(): array
     {
