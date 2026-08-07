@@ -125,12 +125,12 @@ class BookSeeder extends Seeder
             ],
         ];
 
-        collect($books)->each(function(array $bookData, int $index) use ($users) {
-            $genreNames = collect($bookData['genres'] );
+        collect($books)->each(function (array $bookData, int $index) use ($users) {
+            $genreNames = collect($bookData['genres']);
 
             $owner = $users->values()->get($index % $users->count());
 
-            $book =Book::firstOrCreate(
+            $book = Book::firstOrCreate(
                 [
                     'isbn' => $bookData['isbn'],
                 ],
@@ -147,8 +147,8 @@ class BookSeeder extends Seeder
             $genreIds = Genre::query()
                 ->whereIn('name', $genreNames)
                 ->pluck('id');
-            
-            if($genreIds->count() !== $genreNames->count()) {
+
+            if ($genreIds->count() !== $genreNames->count()) {
                 throw new RuntimeException(
                     "{$book->title}に必要なジャンルが登録されていません。"
                 );

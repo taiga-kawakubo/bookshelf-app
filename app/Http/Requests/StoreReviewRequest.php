@@ -15,7 +15,7 @@ class StoreReviewRequest extends FormRequest
         return true;
     }
 
-/**
+    /**
      * バリデーションルール
      *
      * @return array<string, ValidationRule|array<mixed>|string>

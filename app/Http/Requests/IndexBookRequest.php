@@ -37,12 +37,12 @@ class IndexBookRequest extends FormRequest
     public function messages(): array
     {
         return [
-        'keyword.string' => 'キーワードは文字列で入力してください。',
-        'keyword.max' => 'キーワードは255文字以内で入力してください。',
-        'genre.integer' => 'ジャンルIDは整数で指定してください。',
-        'genre.exists' => '指定されたジャンルは存在しません。',
-        'sort.string' => '並び順は文字列で指定してください。',
-        'sort.in' => '指定された並び順は使用できません。',
+            'keyword.string' => 'キーワードは文字列で入力してください。',
+            'keyword.max' => 'キーワードは255文字以内で入力してください。',
+            'genre.integer' => 'ジャンルIDは整数で指定してください。',
+            'genre.exists' => '指定されたジャンルは存在しません。',
+            'sort.string' => '並び順は文字列で指定してください。',
+            'sort.in' => '指定された並び順は使用できません。',
         ];
     }
 }

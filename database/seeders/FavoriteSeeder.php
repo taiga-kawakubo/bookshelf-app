@@ -46,7 +46,7 @@ class FavoriteSeeder extends Seeder
             ],
         ];
 
-        collect($favorites)->each(function(array $bookIsbns, string $userEmail) {
+        collect($favorites)->each(function (array $bookIsbns, string $userEmail) {
             $user = User::query()
                 ->where('email', $userEmail)
                 ->firstOrFail();

@@ -25,13 +25,13 @@ class ReviewSeeder extends Seeder
             5 => 'とても満足度が高く、強くおすすめしたい一冊です。',
         ]);
 
-        $books->each(function($book)use($users, $commentsByRating) {
+        $books->each(function ($book) use ($users, $commentsByRating) {
             $reviewCount = random_int(2, 4);
 
             $users
                 ->shuffle()
                 ->take($reviewCount)
-                ->each(function ($user)use($book, $commentsByRating){
+                ->each(function ($user) use ($book, $commentsByRating) {
                     $rating = random_int(1, 5);
 
                     Review::firstOrCreate(
