@@ -42,7 +42,7 @@
                         <div class="space-y-3">
                             @foreach ($stats['rating_distribution'] as $index => $count)
                                 @php
-                                    $rating = $index + 1;
+                                    $rating = $index;
                                     $maxCount = $stats['rating_distribution']->max() ?: 1;
                                     $percentage = ($count / $maxCount) * 100;
                                 @endphp
