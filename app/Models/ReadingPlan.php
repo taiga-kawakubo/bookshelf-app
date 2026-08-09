@@ -30,6 +30,7 @@ class ReadingPlan extends Model
      */
     protected $casts = [
         'target_date' => 'date',
+        'completed_at' => 'datetime',
         'status' => ReadingPlanStatus::class,
     ];
 

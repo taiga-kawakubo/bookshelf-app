@@ -2,13 +2,14 @@
 
 namespace App\Http\Requests;
 
+use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
 class IndexBookRequest extends FormRequest
 {
     /**
-     * Determine if the user is authorized to make this request.
+     * このリクエストを実行できるか判定する
      */
     public function authorize(): bool
     {
@@ -18,7 +19,7 @@ class IndexBookRequest extends FormRequest
     /**
      * バリデーションルール
      *
-     * @return array<string, mixed>
+     * @return array<string, ValidationRule|array<mixed>|string>
      */
     public function rules(): array
     {
@@ -34,6 +35,12 @@ class IndexBookRequest extends FormRequest
         ];
     }
 
+
+    /**
+     * バリデーションエラーメッセージ
+     *
+     * @return array<string, string>
+     */
     public function messages(): array
     {
         return [
