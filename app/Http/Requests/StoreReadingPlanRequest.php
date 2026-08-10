@@ -24,9 +24,10 @@ class StoreReadingPlanRequest extends FormRequest
     {
         return [
             'book_id' => ['required', 'integer', 'exists:books,id'],
-            'target_date' =>['required', 'date']
+            'target_date' => ['required', 'date'],
         ];
     }
+
     /**
      * バリデーションエラーメッセージ
      *

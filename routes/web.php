@@ -4,11 +4,12 @@ use App\Http\Controllers\BookController;
 use App\Http\Controllers\FavoriteController;
 use App\Http\Controllers\GenreController;
 use App\Http\Controllers\IsbnLookupController;
+use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\RankingController;
+use App\Http\Controllers\ReadingPlanController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\ReviewController;
 use App\Http\Controllers\ReviewLikeController;
-use App\Http\Controllers\ReadingPlanController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -128,34 +129,38 @@ Route::middleware('auth')->group(function () {
     // 読書計画一覧画面の表示
     Route::get('/reading-plans', [ReadingPlanController::class, 'index'])
         ->name('reading-plans.index');
-    
-    //新規読書計画の登録画面の表示
+
+    // 新規読書計画の登録画面の表示
     Route::get('/reading-plans/create', [ReadingPlanController::class, 'create'])
         ->name('reading-plans.create');
-    
-    //読書計画の登録
+
+    // 読書計画の登録
     Route::post('/reading-plans', [ReadingPlanController::class, 'store'])
         ->name('reading-plans.store');
-    
-    //読書計画編集画面の表示
+
+    // 読書計画編集画面の表示
     Route::get('/reading-plans/{plan}/edit', [ReadingPlanController::class, 'edit'])
         ->name('reading-plans.edit');
-    
-    //読書計画の更新
+
+    // 読書計画の更新
     Route::put('/reading-plans/{plan}', [ReadingPlanController::class, 'update'])
         ->name('reading-plans.update');
 
-    //読書計画の削除
+    // 読書計画の削除
     Route::delete('/reading-plans/{plan}/edit', [ReadingPlanController::class, 'destroy'])
         ->name('reading-plans.destroy');
-    
-    //読書計画で読了する
+
+    // 読書計画で読了する
     Route::post('/reading-plans/{plan}/complete', [ReadingPlanController::class, 'complete'])
         ->name('reading-plans.complete');
 
     // 通知一覧の表示
-    Route::get('/notifications', fn () => '通知一覧画面（準備中)')
+    Route::get('/notifications', [NotificationController::class, 'index'])
         ->name('notifications.index');
+
+    // 通知を既読状態にする
+    Route::post('/notifications/{notification}/read', [NotificationController::class, 'markAsRead'])
+        ->name('notifications.read');
 
     // isbnによる登録
     Route::get('/books/isbn/{isbn}', [IsbnLookupController::class, 'show'])

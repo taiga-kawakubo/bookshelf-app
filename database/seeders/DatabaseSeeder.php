@@ -17,6 +17,7 @@ class DatabaseSeeder extends Seeder
             FavoriteSeeder::class,
             ReviewLikeSeeder::class,
             ReadingPlanSeeder::class,
+            NotificationSeeder::class,
         ]);
     }
 }

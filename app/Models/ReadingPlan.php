@@ -21,6 +21,10 @@ class ReadingPlan extends Model
         'book_id',
         'target_date',
         'status',
+        'completed_at',
+        'three_days_before_notified_at',
+        'on_due_date_notified_at',
+        'three_days_after_notified_at',
     ];
 
     /**
@@ -32,6 +36,9 @@ class ReadingPlan extends Model
         'target_date' => 'date',
         'completed_at' => 'datetime',
         'status' => ReadingPlanStatus::class,
+        'three_days_before_notified_at' => 'datetime',
+        'on_due_date_notified_at' => 'datetime',
+        'three_days_after_notified_at' => 'datetime',
     ];
 
     /**

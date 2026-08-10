@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use App\Enums\ReadingPlanStatus;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -24,7 +25,7 @@ class IndexReadingPlanRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'status' => ['nullable', Rule::enum(ReadingPlanStatus::class)]
+            'status' => ['nullable', Rule::enum(ReadingPlanStatus::class)],
         ];
     }
 
@@ -36,11 +37,7 @@ class IndexReadingPlanRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'status.enum' => '指定されたステータスは使用できません。'
+            'status.enum' => '指定されたステータスは使用できません。',
         ];
     }
-
-
-
-
 }

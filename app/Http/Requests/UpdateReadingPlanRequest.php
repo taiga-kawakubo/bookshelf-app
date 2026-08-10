@@ -10,7 +10,6 @@ class UpdateReadingPlanRequest extends FormRequest
     /**
      * このリクエストを実行できるか判定する
      */
-
     public function authorize(): bool
     {
         return true;
@@ -24,7 +23,7 @@ class UpdateReadingPlanRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'target_date' =>['required', 'date']
+            'target_date' => ['required', 'date'],
         ];
     }
 

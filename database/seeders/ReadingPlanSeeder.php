@@ -21,10 +21,10 @@ class ReadingPlanSeeder extends Seeder
         $yamada = User::where('email', 'yamada@example.com')->firstOrFail();
         $suzuki = User::where('email', 'suzuki@example.com')->firstOrFail();
 
-        $books = Book::orderBy('id')->take(7)->get();
+        $books = Book::orderBy('id')->take(11)->get()->values();
 
         $readingPlans = [
-            // 期日まで余裕がある計画
+            // 期日前で通知前の計画
             [
                 'user_id' => $yamada->id,
                 'book_id' => $books[0]->id,
@@ -32,70 +32,102 @@ class ReadingPlanSeeder extends Seeder
                 'status' => ReadingPlanStatus::InProgress,
             ],
 
-            // 期日前日の計画
+            // 期日3日前の計画
             [
                 'user_id' => $yamada->id,
                 'book_id' => $books[1]->id,
-                'target_date' => $today->copy()->addDays(1),
+                'target_date' => $today->copy()->addDays(3),
+                'status' => ReadingPlanStatus::InProgress,
+            ],
+
+            // 期日3日前で通知を確認済みの計画
+            [
+                'user_id' => $yamada->id,
+                'book_id' => $books[2]->id,
+                'target_date' => $today->copy()->addDays(3),
                 'status' => ReadingPlanStatus::InProgress,
             ],
 
             // 期日当日の計画
             [
                 'user_id' => $yamada->id,
-                'book_id' => $books[2]->id,
+                'book_id' => $books[3]->id,
                 'target_date' => $today->copy(),
                 'status' => ReadingPlanStatus::InProgress,
             ],
 
-            // 読了済みの期日前の計画
-            [
-                'user_id' => $yamada->id,
-                'book_id' => $books[3]->id,
-                'target_date' => $today->copy()->addDays(1),
-                'status' => ReadingPlanStatus::Completed,
-            ],
-
-            // 期日を過ぎた計画
+            // 期日当日で通知を確認済みの計画
             [
                 'user_id' => $yamada->id,
                 'book_id' => $books[4]->id,
-                'target_date' => $today->copy()->subDays(1),
-                'status' => ReadingPlanStatus::Overdue,
+                'target_date' => $today->copy(),
+                'status' => ReadingPlanStatus::InProgress,
             ],
 
-            // 読了済みの過去の計画
+            // 期日3日後で通知を確認済みの計画
             [
                 'user_id' => $yamada->id,
                 'book_id' => $books[5]->id,
                 'target_date' => $today->copy()->subDays(3),
-                'status' => ReadingPlanStatus::Completed,
+                'status' => ReadingPlanStatus::Overdue,
             ],
 
-            // suzukiの計画
-            [
-                'user_id' => $suzuki->id,
-                'book_id' => $books[6]->id,
-                'target_date' => $today->copy()->addDays(7),
-                'status' => ReadingPlanStatus::InProgress,
-            ],
-
-            // 期日を過ぎた進行中の計画
+            // 期日3日後で通知を未確認の計画
             [
                 'user_id' => $yamada->id,
                 'book_id' => $books[6]->id,
-                'target_date' => $today->copy()->subDay(),
+                'target_date' => $today->copy()->subDays(3),
+                'status' => ReadingPlanStatus::Overdue,
+            ],
+
+            // 期日を7日過ぎた計画
+            [
+                'user_id' => $yamada->id,
+                'book_id' => $books[7]->id,
+                'target_date' => $today->copy()->subDays(7),
+                'status' => ReadingPlanStatus::Overdue,
+            ],
+
+            // 期限前に読了している計画
+            [
+                'user_id' => $yamada->id,
+                'book_id' => $books[8]->id,
+                'target_date' => $today->copy()->addDays(5),
+                'status' => ReadingPlanStatus::Completed,
+                'completed_at' => $today->copy(),
+            ],
+
+            // 期限後に読了している計画
+            [
+                'user_id' => $yamada->id,
+                'book_id' => $books[9]->id,
+                'target_date' => $today->copy()->subDays(5),
+                'status' => ReadingPlanStatus::Completed,
+                'completed_at' => $today->copy(),
+            ],
+
+            // 他ユーザーの通知表示確認用の計画
+            [
+                'user_id' => $suzuki->id,
+                'book_id' => $books[10]->id,
+                'target_date' => $today->copy()->addDays(7),
                 'status' => ReadingPlanStatus::InProgress,
             ],
         ];
 
         collect($readingPlans)->each(function ($readingPlanData) {
-            ReadingPlan::firstOrCreate(
+            ReadingPlan::updateOrCreate(
                 [
                     'user_id' => $readingPlanData['user_id'],
                     'book_id' => $readingPlanData['book_id'],
+                ],
+                [
                     'target_date' => $readingPlanData['target_date'],
                     'status' => $readingPlanData['status'],
+                    'completed_at' => $readingPlanData['completed_at'] ?? null,
+                    'three_days_before_notified_at' => null,
+                    'on_due_date_notified_at' => null,
+                    'three_days_after_notified_at' => null,
                 ]
             );
         });

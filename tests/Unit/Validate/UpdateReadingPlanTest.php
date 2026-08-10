@@ -14,7 +14,7 @@ class UpdateReadingPlanTest extends TestCase
      */
     private function makeValidator(array $data): ValidationValidator
     {
-        $request = new UpdateReadingPlanRequest();
+        $request = new UpdateReadingPlanRequest;
 
         return Validator::make(
             $data,
