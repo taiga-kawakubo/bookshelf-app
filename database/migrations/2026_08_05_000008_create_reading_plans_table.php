@@ -17,6 +17,10 @@ return new class extends Migration
             $table->foreignId('book_id')->constrained()->cascadeOnDelete();
             $table->date('target_date');
             $table->string('status');
+            $table->timestamp('completed_at')->nullable();
+            $table->timestamp('three_days_before_notified_at')->nullable();
+            $table->timestamp('on_due_date_notified_at')->nullable();
+            $table->timestamp('three_days_after_notified_at')->nullable();
             $table->timestamps();
         });
     }

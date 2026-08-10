@@ -2,15 +2,14 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\StoreReadingPlanRequest;
-use App\Http\Requests\IndexReadingPlanRequest;
-use App\Http\Requests\UpdateReadingPlanRequest;
-use App\Models\ReadingPlan;
-use App\Models\Book;
 use App\Enums\ReadingPlanStatus;
+use App\Http\Requests\IndexReadingPlanRequest;
+use App\Http\Requests\StoreReadingPlanRequest;
+use App\Http\Requests\UpdateReadingPlanRequest;
+use App\Models\Book;
+use App\Models\ReadingPlan;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\View\View;
-
 
 class ReadingPlanController extends Controller
 {
@@ -23,7 +22,7 @@ class ReadingPlanController extends Controller
 
         $currentStatus = $validated['status'] ?? null;
 
-        //読書ステータスによるフィルタ
+        // 読書ステータスによるフィルタ
         $readingPlans = ReadingPlan::query()
             ->with('book')
             ->where('user_id', $request->user()->id)
@@ -41,9 +40,9 @@ class ReadingPlanController extends Controller
      */
     public function create(): View
     {
-        $books = Book::query()->get(); 
+        $books = Book::query()->get();
 
-        return view('reading-plans.create',compact('books'));
+        return view('reading-plans.create', compact('books'));
     }
 
     /**
@@ -53,7 +52,7 @@ class ReadingPlanController extends Controller
     {
         $validated = $request->validated();
         ReadingPlan::create([
-            'user_id' =>$request->user()->id,
+            'user_id' => $request->user()->id,
             'book_id' => $validated['book_id'],
             'target_date' => $validated['target_date'],
             'status' => ReadingPlanStatus::InProgress,
@@ -71,7 +70,7 @@ class ReadingPlanController extends Controller
     {
         $this->authorize('update', $plan);
 
-        $plan -> load('book');
+        $plan->load('book');
 
         return view('reading-plans.edit', [
             'readingPlan' => $plan,
@@ -87,7 +86,7 @@ class ReadingPlanController extends Controller
 
         $validated = $request->validated();
         $plan->update([
-            'target_date' => $validated['target_date']
+            'target_date' => $validated['target_date'],
         ]);
 
         return redirect()

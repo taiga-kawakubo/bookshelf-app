@@ -35,7 +35,6 @@ class IndexBookRequest extends FormRequest
         ];
     }
 
-
     /**
      * バリデーションエラーメッセージ
      *

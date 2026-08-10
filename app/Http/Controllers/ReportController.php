@@ -51,7 +51,7 @@ class ReportController extends Controller
                     'id' => $book->id,
                     'title' => $book->title,
                     'author' => $book->author,
-                    //星表示用に整数化
+                    // 星表示用に整数化
                     'rating' => round($book->reviews_avg_rating),
                 ];
             });
@@ -78,7 +78,6 @@ class ReportController extends Controller
             });
         });
 
-
         $genreRatings = collect($genreRatings)->map(function ($genre) {
             return [
                 'id' => $genre['id'],
@@ -87,7 +86,6 @@ class ReportController extends Controller
                 'average_rating' => collect($genre['ratings'])->avg(),
             ];
         });
-
 
         $genreRatings = $genreRatings
             ->sortByDesc('average_rating')

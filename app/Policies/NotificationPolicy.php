@@ -8,7 +8,7 @@ use Illuminate\Notifications\DatabaseNotification;
 class NotificationPolicy
 {
     /**
-     * 通知の送信先が通知を送る本人かを判定
+     * 通知の宛先が、ログインユーザー本人かを判定
      */
     public function markAsRead(User $user, DatabaseNotification $notification): bool
     {

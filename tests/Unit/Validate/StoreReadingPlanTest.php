@@ -18,7 +18,7 @@ class StoreReadingPlanTest extends TestCase
      */
     private function makeValidator(array $data): ValidationValidator
     {
-        $request = new StoreReadingPlanRequest();
+        $request = new StoreReadingPlanRequest;
 
         return Validator::make(
             $data,
@@ -66,7 +66,7 @@ class StoreReadingPlanTest extends TestCase
         $this->assertArrayHasKey('book_id', $validator->errors()->toArray());
     }
 
-    public function test_書籍IDが整数でない場合はバリデーションエラーになる(): void
+    public function test_書籍_i_dが整数でない場合はバリデーションエラーになる(): void
     {
         $validator = $this->makeValidator($this->validData([
             'book_id' => 'abc',
