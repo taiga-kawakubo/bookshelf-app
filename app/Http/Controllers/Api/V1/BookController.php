@@ -39,6 +39,7 @@ class BookController extends Controller
     public function store(StoreBookRequest $request): JsonResponse
     {
         $validated = $request->validated();
+        $validated['user_id'] = $request->user()->id;
 
         $book = DB::transaction(function () use ($validated) {
             $genreIds = $validated['genres'];
