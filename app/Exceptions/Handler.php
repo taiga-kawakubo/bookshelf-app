@@ -3,10 +3,12 @@
 namespace App\Exceptions;
 
 use App\Models\Book;
+use Illuminate\Auth\AuthenticationException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
+use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 class Handler extends ExceptionHandler
@@ -32,6 +34,27 @@ class Handler extends ExceptionHandler
             return response()->json([
                 'message' => 'エンドポイントが見つかりません。',
             ], 404);
+        });
+
+        $this->renderable(function (AuthenticationException $e, Request $request) {
+            if (! $request->is('api/*')) {
+                return null;
+
+            }
+
+            return response()->json([
+                'message' => '認証が必要です。',
+            ], 401);
+        });
+
+        $this->renderable(function (AccessDeniedHttpException $e, Request $request) {
+            if (! $request->is('api/*')) {
+                return null;
+            }
+
+            return response()->json([
+                'message' => 'この操作を行う権限がありません。',
+            ], 403);
         });
     }
 
