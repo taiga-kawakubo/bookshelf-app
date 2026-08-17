@@ -52,7 +52,6 @@ class StoreBookRequestTest extends TestCase
         $genre = Genre::query()->firstOrFail();
 
         return array_merge([
-            'user_id' => $this->user->id,
             'title' => 'テスト書籍',
             'author' => 'テスト著者',
             'isbn' => '1111111111111',
@@ -69,10 +68,7 @@ class StoreBookRequestTest extends TestCase
             $this->validData()
         );
 
-        $this->assertTrue(
-            $validator->passes(),
-            $validator->errors()->first()
-        );
+        $this->assertFalse($validator->fails());
     }
 
     public function test_説明と画像urlがnullでもバリデーションを通過する(): void
@@ -84,63 +80,7 @@ class StoreBookRequestTest extends TestCase
             ])
         );
 
-        $this->assertTrue(
-            $validator->passes(),
-            $validator->errors()->first()
-        );
-    }
-
-    public function test_登録者が未入力の場合バリデーションエラーになる(): void
-    {
-        $data = $this->validData();
-
-        unset($data['user_id']);
-
-        $validator = $this->makeValidator($data);
-
-        $this->assertFalse($validator->passes());
-        $this->assertTrue($validator->errors()->has('user_id'));
-
-        $this->assertSame(
-            '登録者IDを指定してください。',
-            $validator->errors()->first('user_id')
-        );
-    }
-
-    public function test_登録者が整数でない場合バリデーションエラーになる(): void
-    {
-        $validator = $this->makeValidator(
-            $this->validData([
-                'user_id' => 'abc',
-            ])
-        );
-
-        $this->assertFalse($validator->passes());
-        $this->assertTrue($validator->errors()->has('user_id'));
-
-        $this->assertSame(
-            '登録者IDは整数で指定してください。',
-            $validator->errors()->first('user_id')
-        );
-    }
-
-    public function test_存在しない登録者の場合バリデーションエラーになる(): void
-    {
-        $missingUserId = (User::query()->max('id') ?? 0) + 1;
-
-        $validator = $this->makeValidator(
-            $this->validData([
-                'user_id' => $missingUserId,
-            ])
-        );
-
-        $this->assertFalse($validator->passes());
-        $this->assertTrue($validator->errors()->has('user_id'));
-
-        $this->assertSame(
-            '指定された登録者は存在しません。',
-            $validator->errors()->first('user_id')
-        );
+        $this->assertFalse($validator->fails());
     }
 
     public function test_タイトルが未入力の場合バリデーションエラーになる(): void
@@ -151,7 +91,7 @@ class StoreBookRequestTest extends TestCase
 
         $validator = $this->makeValidator($data);
 
-        $this->assertFalse($validator->passes());
+        $this->assertTrue($validator->fails());
         $this->assertTrue($validator->errors()->has('title'));
 
         $this->assertSame(
@@ -168,28 +108,11 @@ class StoreBookRequestTest extends TestCase
             ])
         );
 
-        $this->assertFalse($validator->passes());
+        $this->assertTrue($validator->fails());
         $this->assertTrue($validator->errors()->has('title'));
 
         $this->assertSame(
             'タイトルは文字列で入力してください。',
-            $validator->errors()->first('title')
-        );
-    }
-
-    public function test_タイトルが255文字を超える場合バリデーションエラーになる(): void
-    {
-        $validator = $this->makeValidator(
-            $this->validData([
-                'title' => str_repeat('あ', 256),
-            ])
-        );
-
-        $this->assertFalse($validator->passes());
-        $this->assertTrue($validator->errors()->has('title'));
-
-        $this->assertSame(
-            'タイトルは255文字以内で入力してください。',
             $validator->errors()->first('title')
         );
     }
@@ -202,7 +125,7 @@ class StoreBookRequestTest extends TestCase
 
         $validator = $this->makeValidator($data);
 
-        $this->assertFalse($validator->passes());
+        $this->assertTrue($validator->fails());
         $this->assertTrue($validator->errors()->has('author'));
 
         $this->assertSame(
@@ -219,28 +142,11 @@ class StoreBookRequestTest extends TestCase
             ])
         );
 
-        $this->assertFalse($validator->passes());
+        $this->assertTrue($validator->fails());
         $this->assertTrue($validator->errors()->has('author'));
 
         $this->assertSame(
             '著者は文字列で入力してください。',
-            $validator->errors()->first('author')
-        );
-    }
-
-    public function test_著者が255文字を超える場合バリデーションエラーになる(): void
-    {
-        $validator = $this->makeValidator(
-            $this->validData([
-                'author' => str_repeat('あ', 256),
-            ])
-        );
-
-        $this->assertFalse($validator->passes());
-        $this->assertTrue($validator->errors()->has('author'));
-
-        $this->assertSame(
-            '著者は255文字以内で入力してください。',
             $validator->errors()->first('author')
         );
     }
@@ -253,28 +159,11 @@ class StoreBookRequestTest extends TestCase
 
         $validator = $this->makeValidator($data);
 
-        $this->assertFalse($validator->passes());
+        $this->assertTrue($validator->fails());
         $this->assertTrue($validator->errors()->has('isbn'));
 
         $this->assertSame(
             'ISBNを入力してください。',
-            $validator->errors()->first('isbn')
-        );
-    }
-
-    public function test_isbnが13桁でない場合バリデーションエラーになる(): void
-    {
-        $validator = $this->makeValidator(
-            $this->validData([
-                'isbn' => '111111111111',
-            ])
-        );
-
-        $this->assertFalse($validator->passes());
-        $this->assertTrue($validator->errors()->has('isbn'));
-
-        $this->assertSame(
-            'ISBNは13桁で入力してください。',
             $validator->errors()->first('isbn')
         );
     }
@@ -297,7 +186,7 @@ class StoreBookRequestTest extends TestCase
             ])
         );
 
-        $this->assertFalse($validator->passes());
+        $this->assertTrue($validator->fails());
         $this->assertTrue($validator->errors()->has('isbn'));
 
         $this->assertSame(
@@ -314,7 +203,7 @@ class StoreBookRequestTest extends TestCase
 
         $validator = $this->makeValidator($data);
 
-        $this->assertFalse($validator->passes());
+        $this->assertTrue($validator->fails());
         $this->assertTrue($validator->errors()->has('published_date'));
 
         $this->assertSame(
@@ -331,7 +220,7 @@ class StoreBookRequestTest extends TestCase
             ])
         );
 
-        $this->assertFalse($validator->passes());
+        $this->assertTrue($validator->fails());
         $this->assertTrue($validator->errors()->has('published_date'));
 
         $this->assertSame(
@@ -348,28 +237,11 @@ class StoreBookRequestTest extends TestCase
             ])
         );
 
-        $this->assertFalse($validator->passes());
+        $this->assertTrue($validator->fails());
         $this->assertTrue($validator->errors()->has('description'));
 
         $this->assertSame(
             '説明は文字列で入力してください。',
-            $validator->errors()->first('description')
-        );
-    }
-
-    public function test_説明が2000文字を超える場合バリデーションエラーになる(): void
-    {
-        $validator = $this->makeValidator(
-            $this->validData([
-                'description' => str_repeat('あ', 2001),
-            ])
-        );
-
-        $this->assertFalse($validator->passes());
-        $this->assertTrue($validator->errors()->has('description'));
-
-        $this->assertSame(
-            '説明は2000文字以内で入力してください。',
             $validator->errors()->first('description')
         );
     }
@@ -382,7 +254,7 @@ class StoreBookRequestTest extends TestCase
             ])
         );
 
-        $this->assertFalse($validator->passes());
+        $this->assertTrue($validator->fails());
         $this->assertTrue($validator->errors()->has('image_url'));
 
         $this->assertSame(
@@ -399,30 +271,11 @@ class StoreBookRequestTest extends TestCase
             ])
         );
 
-        $this->assertFalse($validator->passes());
+        $this->assertTrue($validator->fails());
         $this->assertTrue($validator->errors()->has('image_url'));
 
         $this->assertSame(
             '画像URLは正しいURL形式で入力してください。',
-            $validator->errors()->first('image_url')
-        );
-    }
-
-    public function test_画像urlが512文字を超える場合バリデーションエラーになる(): void
-    {
-        $longUrl = 'https://example.com/'.str_repeat('a', 493);
-
-        $validator = $this->makeValidator(
-            $this->validData([
-                'image_url' => $longUrl,
-            ])
-        );
-
-        $this->assertFalse($validator->passes());
-        $this->assertTrue($validator->errors()->has('image_url'));
-
-        $this->assertSame(
-            '画像URLは512文字以内で入力してください。',
             $validator->errors()->first('image_url')
         );
     }
@@ -435,7 +288,7 @@ class StoreBookRequestTest extends TestCase
 
         $validator = $this->makeValidator($data);
 
-        $this->assertFalse($validator->passes());
+        $this->assertTrue($validator->fails());
         $this->assertTrue($validator->errors()->has('genres'));
 
         $this->assertSame(
@@ -452,28 +305,11 @@ class StoreBookRequestTest extends TestCase
             ])
         );
 
-        $this->assertFalse($validator->passes());
+        $this->assertTrue($validator->fails());
         $this->assertTrue($validator->errors()->has('genres'));
 
         $this->assertSame(
             'ジャンルは配列形式で送信してください。',
-            $validator->errors()->first('genres')
-        );
-    }
-
-    public function test_ジャンルが空配列の場合バリデーションエラーになる(): void
-    {
-        $validator = $this->makeValidator(
-            $this->validData([
-                'genres' => [],
-            ])
-        );
-
-        $this->assertFalse($validator->passes());
-        $this->assertTrue($validator->errors()->has('genres'));
-
-        $this->assertSame(
-            'ジャンルを1つ以上選択してください。',
             $validator->errors()->first('genres')
         );
     }
@@ -486,7 +322,7 @@ class StoreBookRequestTest extends TestCase
             ])
         );
 
-        $this->assertFalse($validator->passes());
+        $this->assertTrue($validator->fails());
         $this->assertTrue($validator->errors()->has('genres.0'));
 
         $this->assertSame(
@@ -508,7 +344,7 @@ class StoreBookRequestTest extends TestCase
             ])
         );
 
-        $this->assertFalse($validator->passes());
+        $this->assertTrue($validator->fails());
 
         $hasDuplicateError =
             $validator->errors()->has('genres.0')
@@ -537,12 +373,179 @@ class StoreBookRequestTest extends TestCase
             ])
         );
 
-        $this->assertFalse($validator->passes());
+        $this->assertTrue($validator->fails());
         $this->assertTrue($validator->errors()->has('genres.0'));
 
         $this->assertSame(
             '選択されたジャンルは存在しません。',
             $validator->errors()->first('genres.0')
+        );
+    }
+
+    public function test_タイトルが255文字の場合はバリデーションを通過する(): void
+    {
+        $validator = $this->makeValidator(
+            $this->validData([
+                'title' => str_repeat('あ', 255),
+            ])
+        );
+
+        $this->assertFalse($validator->fails());
+    }
+
+    public function test_タイトルが256文字の場合バリデーションエラーになる(): void
+    {
+        $validator = $this->makeValidator(
+            $this->validData([
+                'title' => str_repeat('あ', 256),
+            ])
+        );
+
+        $this->assertTrue($validator->fails());
+        $this->assertTrue($validator->errors()->has('title'));
+
+        $this->assertSame(
+            'タイトルは255文字以内で入力してください。',
+            $validator->errors()->first('title')
+        );
+    }
+
+    public function test_著者名が255文字の場合はバリデーションを通過する(): void
+    {
+        $validator = $this->makeValidator(
+            $this->validData([
+                'author' => str_repeat('あ', 255),
+            ])
+        );
+
+        $this->assertFalse($validator->fails());
+    }
+
+    public function test_著者が256文字の場合バリデーションエラーになる(): void
+    {
+        $validator = $this->makeValidator(
+            $this->validData([
+                'author' => str_repeat('あ', 256),
+            ])
+        );
+
+        $this->assertTrue($validator->fails());
+        $this->assertTrue($validator->errors()->has('author'));
+
+        $this->assertSame(
+            '著者は255文字以内で入力してください。',
+            $validator->errors()->first('author')
+        );
+    }
+
+    public function test_isbnが13桁の場合バリデーションを通過する(): void
+    {
+        $validator = $this->makeValidator(
+            $this->validData([
+                'isbn' => '1111111111111',
+            ])
+        );
+
+        $this->assertFalse($validator->fails());
+    }
+
+    public function test_isbnが13桁でない場合バリデーションエラーになる(): void
+    {
+        $validator = $this->makeValidator(
+            $this->validData([
+                'isbn' => '111111111111',
+            ])
+        );
+
+        $this->assertTrue($validator->fails());
+        $this->assertTrue($validator->errors()->has('isbn'));
+
+        $this->assertSame(
+            'ISBNは13桁で入力してください。',
+            $validator->errors()->first('isbn')
+        );
+    }
+
+    public function test_説明が2000文字の場合はバリデーションを通過する(): void
+    {
+        $validator = $this->makeValidator(
+            $this->validData([
+                'description' => str_repeat('あ', 2000),
+            ])
+        );
+
+        $this->assertFalse($validator->fails());
+    }
+
+    public function test_説明が2001文字の場合バリデーションエラーになる(): void
+    {
+        $validator = $this->makeValidator(
+            $this->validData([
+                'description' => str_repeat('あ', 2001),
+            ])
+        );
+
+        $this->assertTrue($validator->fails());
+        $this->assertTrue($validator->errors()->has('description'));
+
+        $this->assertSame(
+            '説明は2000文字以内で入力してください。',
+            $validator->errors()->first('description')
+        );
+    }
+
+    public function test_画像urlが512文字の場合はバリデーションを通過する(): void
+    {
+        $baseUrl = 'https://example.com/';
+        $imageUrl = $baseUrl.str_repeat(
+            'a',
+            512 - strlen($baseUrl)
+        );
+
+        $this->assertSame(512, strlen($imageUrl));
+
+        $validator = $this->makeValidator(
+            $this->validData([
+                'image_url' => $imageUrl,
+            ])
+        );
+
+        $this->assertFalse($validator->fails());
+    }
+
+    public function test_画像urlが513文字の場合バリデーションエラーになる(): void
+    {
+        $longUrl = 'https://example.com/'.str_repeat('a', 493);
+
+        $validator = $this->makeValidator(
+            $this->validData([
+                'image_url' => $longUrl,
+            ])
+        );
+
+        $this->assertTrue($validator->fails());
+        $this->assertTrue($validator->errors()->has('image_url'));
+
+        $this->assertSame(
+            '画像URLは512文字以内で入力してください。',
+            $validator->errors()->first('image_url')
+        );
+    }
+
+    public function test_ジャンルが空配列の場合バリデーションエラーになる(): void
+    {
+        $validator = $this->makeValidator(
+            $this->validData([
+                'genres' => [],
+            ])
+        );
+
+        $this->assertTrue($validator->fails());
+        $this->assertTrue($validator->errors()->has('genres'));
+
+        $this->assertSame(
+            'ジャンルを1つ以上選択してください。',
+            $validator->errors()->first('genres')
         );
     }
 }

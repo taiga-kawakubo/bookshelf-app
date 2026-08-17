@@ -15,7 +15,7 @@ class ReportController extends Controller
         $user->loadCount('reviews')
             ->loadAvg('reviews', 'rating');
 
-        $booksRead = $user->readingPlan()
+        $booksRead = $user->readingPlans()
             ->where('status', ReadingPlanStatus::Completed)
             ->pluck('book_id')
             ->unique()
@@ -40,10 +40,14 @@ class ReportController extends Controller
         // 高評価書籍TOP5
         $topRatedBooks = $user->books()
             ->withAvg('reviews', 'rating')
+            ->withCount('reviews')
             ->orderByDesc('reviews_avg_rating')
+            ->orderByDesc('reviews_count')
+            ->orderByDesc('updated_at')
+            ->orderBy('title')
             ->get()
             ->filter(function ($book) {
-                return round($book->reviews_avg_rating) >= 4;
+                return round($book->reviews_avg_rating ?? 0) >= 4;
             })
             ->take(5)
             ->map(function ($book) {
@@ -52,11 +56,11 @@ class ReportController extends Controller
                     'title' => $book->title,
                     'author' => $book->author,
                     // 星表示用に整数化
-                    'rating' => round($book->reviews_avg_rating),
+                    'rating' => round($book->reviews_avg_rating ?? 0),
                 ];
             });
 
-        // ジャンル別評価傾向
+        // ジャンル別評価傾向TOP５
         $reviews = $user->reviews()
             ->with('book.genres')
             ->get();
@@ -66,7 +70,6 @@ class ReportController extends Controller
         $reviews->each(function ($review) use (&$genreRatings) {
 
             $review->book->genres->each(function ($genre) use ($review, &$genreRatings) {
-
                 if (! isset($genreRatings[$genre->id])) {
                     $genreRatings[$genre->id] = [
                         'id' => $genre->id,
@@ -74,21 +77,33 @@ class ReportController extends Controller
                         'ratings' => [],
                     ];
                 }
+
                 $genreRatings[$genre->id]['ratings'][] = $review->rating;
             });
         });
 
-        $genreRatings = collect($genreRatings)->map(function ($genre) {
-            return [
-                'id' => $genre['id'],
-                'name' => $genre['name'],
-                'count' => count($genre['ratings']),
-                'average_rating' => collect($genre['ratings'])->avg(),
-            ];
-        });
+        $genreRatings = collect($genreRatings)
+            ->map(function ($genre) {
+                return [
+                    'id' => $genre['id'],
+                    'name' => $genre['name'],
+                    'count' => count($genre['ratings']),
+                    'average_rating' => collect($genre['ratings'])->avg(),
+                ];
+            });
 
         $genreRatings = $genreRatings
-            ->sortByDesc('average_rating')
+            ->sort(function ($a, $b) {
+                if ($a['average_rating'] !== $b['average_rating']) {
+                    return $b['average_rating'] <=> $a['average_rating'];
+                }
+
+                if ($a['count'] !== $b['count']) {
+                    return $b['count'] <=> $a['count'];
+                }
+
+                return strcmp($a['name'], $b['name']);
+            })
             ->take(5)
             ->values()
             ->map(function ($genre) {
@@ -96,10 +111,7 @@ class ReportController extends Controller
                     'id' => $genre['id'],
                     'name' => $genre['name'],
                     'count' => $genre['count'],
-                    'average_rating' => round(
-                        $genre['average_rating'],
-                        1
-                    ),
+                    'average_rating' => round($genre['average_rating'] ?? 0, 1),
                 ];
             });
 
@@ -107,9 +119,7 @@ class ReportController extends Controller
             'summary' => [
                 'total_reviews' => $user->reviews_count,
                 'books_read' => $booksRead,
-                'average_rating' => round(
-                    $user->reviews_avg_rating, 1
-                ),
+                'average_rating' => round($user->reviews_avg_rating ?? 0, 1),
             ],
             'rating_distribution' => $ratingDistribution,
             'top_rated_books' => $topRatedBooks,

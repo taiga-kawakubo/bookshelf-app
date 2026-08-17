@@ -147,7 +147,7 @@ Route::middleware('auth')->group(function () {
         ->name('reading-plans.update');
 
     // 読書計画の削除
-    Route::delete('/reading-plans/{plan}/edit', [ReadingPlanController::class, 'destroy'])
+    Route::delete('/reading-plans/{plan}', [ReadingPlanController::class, 'destroy'])
         ->name('reading-plans.destroy');
 
     // 読書計画で読了する

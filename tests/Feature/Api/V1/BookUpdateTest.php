@@ -6,6 +6,7 @@ use App\Models\Book;
 use App\Models\Genre;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Laravel\Sanctum\Sanctum;
 use Tests\TestCase;
 
 class BookUpdateTest extends TestCase
@@ -79,8 +80,15 @@ class BookUpdateTest extends TestCase
         ], $override);
     }
 
+    private function authenticateBookOwner(): void
+    {
+        Sanctum::actingAs($this->bookOwner);
+    }
+
     public function test_書籍更新は有効な値で書籍とジャンルを更新する(): void
     {
+        $this->authenticateBookOwner();
+
         $payload = $this->validData([
             'user_id' => $this->anotherUser->id,
             'genres' => [
@@ -163,8 +171,10 @@ class BookUpdateTest extends TestCase
         ]);
     }
 
-    public function test_書籍更新は更新対象自身のisbnをそのまま使用できる(): void
+    public function test_書籍更新は更新対象自身の_isb_nをそのまま使用できる(): void
     {
+        $this->authenticateBookOwner();
+
         $payload = $this->validData([
             'isbn' => $this->book->isbn,
         ]);
@@ -184,6 +194,8 @@ class BookUpdateTest extends TestCase
 
     public function test_書籍更新は任意項目をnullに更新できる(): void
     {
+        $this->authenticateBookOwner();
+
         $payload = $this->validData([
             'isbn' => '5234567890125',
             'description' => null,
@@ -207,6 +219,8 @@ class BookUpdateTest extends TestCase
 
     public function test_書籍更新は任意項目が未入力でも更新できる(): void
     {
+        $this->authenticateBookOwner();
+
         $payload = $this->validData([
             'isbn' => '5234567890126',
         ]);
@@ -233,8 +247,56 @@ class BookUpdateTest extends TestCase
         ]);
     }
 
+    public function test_未認証ユーザーは書籍を更新できない(): void
+    {
+        $response = $this->putJson(
+            route('api.v1.books.update', $this->book),
+            $this->validData()
+        );
+
+        $response->assertUnauthorized();
+        $response->assertJsonPath('message', '認証が必要です。');
+
+        $this->assertDatabaseHas('books', [
+            'id' => $this->book->id,
+            'user_id' => $this->bookOwner->id,
+            'title' => 'API更新前の書籍',
+            'isbn' => '5234567890123',
+        ]);
+    }
+
+    public function test_所有者でないユーザーは書籍を更新できない(): void
+    {
+        Sanctum::actingAs($this->anotherUser);
+
+        $response = $this->putJson(
+            route('api.v1.books.update', $this->book),
+            $this->validData()
+        );
+
+        $response->assertForbidden();
+        $response->assertJsonPath(
+            'message',
+            'この操作を行う権限がありません。'
+        );
+
+        $this->assertDatabaseHas('books', [
+            'id' => $this->book->id,
+            'user_id' => $this->bookOwner->id,
+            'title' => 'API更新前の書籍',
+            'isbn' => '5234567890123',
+        ]);
+
+        $this->assertDatabaseHas('book_genre', [
+            'book_id' => $this->book->id,
+            'genre_id' => $this->oldGenre->id,
+        ]);
+    }
+
     public function test_書籍更新はバリデーションエラー時に書籍とジャンル紐付けを変更しない(): void
     {
+        $this->authenticateBookOwner();
+
         $payload = $this->validData([
             'genres' => [],
         ]);
@@ -270,8 +332,10 @@ class BookUpdateTest extends TestCase
         $this->assertDatabaseCount('book_genre', 1);
     }
 
-    public function test_別の書籍が使用しているisbnには更新できない(): void
+    public function test_別の書籍が使用している_isb_nには更新できない(): void
     {
+        $this->authenticateBookOwner();
+
         Book::factory()->create([
             'user_id' => $this->bookOwner->id,
             'title' => '別の書籍',
@@ -303,29 +367,10 @@ class BookUpdateTest extends TestCase
         ]);
     }
 
-    public function test_isbnが13桁ではない場合は書籍更新できない(): void
-    {
-        $payload = $this->validData([
-            'isbn' => '123456789012',
-        ]);
-
-        $response = $this->putJson(route('api.v1.books.update', $this->book), $payload);
-
-        $response->assertStatus(422);
-        $response->assertJsonPath('message', '入力内容に誤りがあります。');
-        $response->assertJsonValidationErrors([
-            'isbn',
-        ]);
-        $response->assertJsonPath('errors.isbn.0', 'ISBNは13桁で入力してください。');
-
-        $this->assertDatabaseHas('books', [
-            'id' => $this->book->id,
-            'isbn' => '5234567890123',
-        ]);
-    }
-
     public function test_ジャンル未指定では書籍更新できない(): void
     {
+        $this->authenticateBookOwner();
+
         $payload = $this->validData([
             'isbn' => '5234567890128',
         ]);
@@ -349,6 +394,8 @@ class BookUpdateTest extends TestCase
 
     public function test_存在しないジャンルでは書籍更新できない(): void
     {
+        $this->authenticateBookOwner();
+
         $payload = $this->validData([
             'isbn' => '5234567890129',
             'genres' => [999999],
@@ -374,6 +421,8 @@ class BookUpdateTest extends TestCase
 
     public function test_存在しない書籍更新は404を返す(): void
     {
+        $this->authenticateBookOwner();
+
         $response = $this->putJson(
             route('api.v1.books.update', 999999),
             $this->validData()
@@ -392,5 +441,28 @@ class BookUpdateTest extends TestCase
 
         $this->assertDatabaseCount('books', 1);
         $this->assertDatabaseCount('book_genre', 1);
+    }
+
+    public function test_isbnが13桁ではない場合は書籍更新できない(): void
+    {
+        $this->authenticateBookOwner();
+
+        $payload = $this->validData([
+            'isbn' => '123456789012',
+        ]);
+
+        $response = $this->putJson(route('api.v1.books.update', $this->book), $payload);
+
+        $response->assertStatus(422);
+        $response->assertJsonPath('message', '入力内容に誤りがあります。');
+        $response->assertJsonValidationErrors([
+            'isbn',
+        ]);
+        $response->assertJsonPath('errors.isbn.0', 'ISBNは13桁で入力してください。');
+
+        $this->assertDatabaseHas('books', [
+            'id' => $this->book->id,
+            'isbn' => '5234567890123',
+        ]);
     }
 }

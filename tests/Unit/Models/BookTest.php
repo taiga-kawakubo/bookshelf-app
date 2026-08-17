@@ -2,8 +2,10 @@
 
 namespace Tests\Unit\Models;
 
+use App\Enums\ReadingPlanStatus;
 use App\Models\Book;
 use App\Models\Genre;
+use App\Models\ReadingPlan;
 use App\Models\Review;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -151,6 +153,40 @@ class BookTest extends TestCase
                 $favoriteUser2->id,
             ],
             $book->favoritedUsers->pluck('id')->all()
+        );
+    }
+
+    public function test_書籍は複数の読書計画を取得する(): void
+    {
+        $user1 = User::factory()->create();
+        $user2 = User::factory()->create();
+
+        $book = Book::factory()->create();
+
+        $readingPlan1 = ReadingPlan::create([
+            'user_id' => $user1->id,
+            'book_id' => $book->id,
+            'target_date' => '2026-07-31',
+            'status' => ReadingPlanStatus::InProgress,
+        ]);
+
+        $readingPlan2 = ReadingPlan::create([
+            'user_id' => $user2->id,
+            'book_id' => $book->id,
+            'target_date' => '2026-08-31',
+            'status' => ReadingPlanStatus::Completed,
+        ]);
+
+        $book->load('readingPlans');
+
+        $this->assertCount(2, $book->readingPlans);
+
+        $this->assertEqualsCanonicalizing(
+            [
+                $readingPlan1->id,
+                $readingPlan2->id,
+            ],
+            $book->readingPlans->pluck('id')->all()
         );
     }
 }

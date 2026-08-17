@@ -125,13 +125,14 @@ class RankingTest extends TestCase
 
         $response->assertOk();
 
-        $response->assertViewHas('rankedBooks', function ($rankedBooks) use ($highBook, $middleBook, $lowBook): bool {
-            return $rankedBooks->pluck('id')->all() === [
-                $highBook->id,
-                $middleBook->id,
-                $lowBook->id,
-            ];
-        });
+        $response->assertViewHas('rankedBooks',
+            function ($rankedBooks) use ($highBook, $middleBook, $lowBook): bool {
+                return $rankedBooks->pluck('id')->all() === [
+                    $highBook->id,
+                    $middleBook->id,
+                    $lowBook->id,
+                ];
+            });
 
         $response->assertSeeTextInOrder([
             $highBook->title,
@@ -193,14 +194,15 @@ class RankingTest extends TestCase
 
         $response->assertOk();
 
-        $response->assertViewHas('rankedBooks', function ($rankedBooks) use ($firstPlaceBook, $firstTieBook, $secondTieBook, $thirdPlaceBook): bool {
-            $booksById = $rankedBooks->keyBy('id');
+        $response->assertViewHas('rankedBooks',
+            function ($rankedBooks) use ($firstPlaceBook, $firstTieBook, $secondTieBook, $thirdPlaceBook): bool {
+                $booksById = $rankedBooks->keyBy('id');
 
-            return (int) $booksById->get($firstPlaceBook->id)->rank === 1
-                && (int) $booksById->get($firstTieBook->id)->rank === 2
-                && (int) $booksById->get($secondTieBook->id)->rank === 2
-                && (int) $booksById->get($thirdPlaceBook->id)->rank === 3;
-        });
+                return (int) $booksById->get($firstPlaceBook->id)->rank === 1
+                    && (int) $booksById->get($firstTieBook->id)->rank === 2
+                    && (int) $booksById->get($secondTieBook->id)->rank === 2
+                    && (int) $booksById->get($thirdPlaceBook->id)->rank === 3;
+            });
     }
 
     public function test_同じ平均評価の中ではレビュー数が多い書籍が先に表示される(): void
@@ -252,12 +254,13 @@ class RankingTest extends TestCase
 
         $response->assertOk();
 
-        $response->assertViewHas('rankedBooks', function ($rankedBooks) use ($manyReviewsBook, $fewReviewsBook): bool {
-            return $rankedBooks->pluck('id')->all() === [
-                $manyReviewsBook->id,
-                $fewReviewsBook->id,
-            ];
-        });
+        $response->assertViewHas('rankedBooks',
+            function ($rankedBooks) use ($manyReviewsBook, $fewReviewsBook): bool {
+                return $rankedBooks->pluck('id')->all() === [
+                    $manyReviewsBook->id,
+                    $fewReviewsBook->id,
+                ];
+            });
 
         $response->assertSeeTextInOrder([
             $manyReviewsBook->title,
@@ -311,54 +314,17 @@ class RankingTest extends TestCase
 
         $response->assertOk();
 
-        $response->assertViewHas('rankedBooks', function ($rankedBooks) use ($newBook, $oldBook): bool {
-            $bookIds = $rankedBooks->pluck('id')->all();
+        $response->assertViewHas('rankedBooks',
+            function ($rankedBooks) use ($newBook, $oldBook): bool {
+                $bookIds = $rankedBooks->pluck('id')->all();
 
-            $ranks = $rankedBooks
-                ->map(fn (Book $book): int => (int) $book->rank)
-                ->all();
+                $ranks = $rankedBooks
+                    ->map(fn (Book $book): int => (int) $book->rank)
+                    ->all();
 
-            return $bookIds === [$newBook->id, $oldBook->id]
-                && $ranks === [1, 1];
-        });
-    }
-
-    public function test_レビューがない書籍はランキングに表示されない(): void
-    {
-        $bookOwner = User::factory()->create();
-        $reviewer = User::factory()->create();
-
-        $reviewedBook = Book::factory()->create([
-            'user_id' => $bookOwner->id,
-            'title' => 'レビューがある書籍',
-        ]);
-
-        $bookWithoutReview = Book::factory()->create([
-            'user_id' => $bookOwner->id,
-            'title' => 'レビューがない書籍',
-        ]);
-
-        $reviewedBook->reviews()->create([
-            'user_id' => $reviewer->id,
-            'rating' => 5,
-            'comment' => 'ランキング対象のレビューです。',
-        ]);
-
-        $response = $this->get(route('ranking.index'));
-
-        $response->assertOk();
-        $response->assertSeeText($reviewedBook->title);
-        $response->assertDontSeeText($bookWithoutReview->title);
-
-        $response->assertViewHas('rankedBooks', function ($rankedBooks) use ($reviewedBook, $bookWithoutReview): bool {
-            return $rankedBooks->count() === 1
-                && $rankedBooks->contains(
-                    fn (Book $book): bool => $book->is($reviewedBook)
-                )
-                && ! $rankedBooks->contains(
-                    fn (Book $book): bool => $book->is($bookWithoutReview)
-                );
-        });
+                return $bookIds === [$newBook->id, $oldBook->id]
+                    && $ranks === [1, 1];
+            });
     }
 
     public function test_レビュー付き書籍が11冊ある場合は上位10冊だけ表示される(): void
@@ -430,5 +396,44 @@ class RankingTest extends TestCase
 
         $response->assertViewHas('rankedBooks', fn ($rankedBooks): bool => $rankedBooks->isEmpty()
         );
+    }
+
+    public function test_レビューがない書籍はランキングに表示されない(): void
+    {
+        $bookOwner = User::factory()->create();
+        $reviewer = User::factory()->create();
+
+        $reviewedBook = Book::factory()->create([
+            'user_id' => $bookOwner->id,
+            'title' => 'レビューがある書籍',
+        ]);
+
+        $bookWithoutReview = Book::factory()->create([
+            'user_id' => $bookOwner->id,
+            'title' => 'レビューがない書籍',
+        ]);
+
+        $reviewedBook->reviews()->create([
+            'user_id' => $reviewer->id,
+            'rating' => 5,
+            'comment' => 'ランキング対象のレビューです。',
+        ]);
+
+        $response = $this->get(route('ranking.index'));
+
+        $response->assertOk();
+        $response->assertSeeText($reviewedBook->title);
+        $response->assertDontSeeText($bookWithoutReview->title);
+
+        $response->assertViewHas('rankedBooks',
+            function ($rankedBooks) use ($reviewedBook, $bookWithoutReview): bool {
+                return $rankedBooks->count() === 1
+                    && $rankedBooks->contains(
+                        fn (Book $book): bool => $book->is($reviewedBook)
+                    )
+                    && ! $rankedBooks->contains(
+                        fn (Book $book): bool => $book->is($bookWithoutReview)
+                    );
+            });
     }
 }

@@ -8,6 +8,7 @@ use App\Http\Requests\StoreReadingPlanRequest;
 use App\Http\Requests\UpdateReadingPlanRequest;
 use App\Models\Book;
 use App\Models\ReadingPlan;
+use Carbon\Carbon;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\View\View;
 
@@ -85,9 +86,34 @@ class ReadingPlanController extends Controller
         $this->authorize('update', $plan);
 
         $validated = $request->validated();
-        $plan->update([
-            'target_date' => $validated['target_date'],
-        ]);
+
+        $newTargetDate = Carbon::parse(
+            $validated['target_date']
+        );
+
+        $targetDateChanged =
+            $plan->target_date->toDateString()
+            !== $newTargetDate->toDateString();
+
+        $updates = [
+            'target_date' => $newTargetDate,
+        ];
+
+        if ($targetDateChanged) {
+            // 新しい期日に対して通知を再判定するため、通知履歴をリセットする
+            $updates['three_days_before_notified_at'] = null;
+            $updates['on_due_date_notified_at'] = null;
+            $updates['three_days_after_notified_at'] = null;
+
+            // 読了済み以外は、新しい期日に応じて状態を設定する
+            if ($plan->status !== ReadingPlanStatus::Completed) {
+                $updates['status'] = $newTargetDate->isBefore(today())
+                    ? ReadingPlanStatus::Overdue->value
+                    : ReadingPlanStatus::InProgress->value;
+            }
+        }
+
+        $plan->update($updates);
 
         return redirect()
             ->route('reading-plans.index')

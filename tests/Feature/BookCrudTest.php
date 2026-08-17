@@ -515,7 +515,6 @@ class BookCrudTest extends TestCase
 
         $this->assertGuest();
 
-        // 書籍本体が変更されていない。
         $this->assertDatabaseHas('books', [
             'id' => $book->id,
             'user_id' => $owner->id,
@@ -527,13 +526,11 @@ class BookCrudTest extends TestCase
             'title' => '不正に変更された書籍',
         ]);
 
-        // 更新前のジャンル紐付けが残っている。
         $this->assertDatabaseHas('book_genre', [
             'book_id' => $book->id,
             'genre_id' => $this->genre->id,
         ]);
 
-        // 送信したジャンルとの紐付けは作成されていない。
         $this->assertDatabaseMissing('book_genre', [
             'book_id' => $book->id,
             'genre_id' => $newGenre->id,

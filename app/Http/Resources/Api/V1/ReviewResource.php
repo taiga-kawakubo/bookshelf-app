@@ -18,6 +18,11 @@ class ReviewResource extends JsonResource
             'id' => $this->id,
             'rating' => $this->rating,
             'comment' => $this->comment,
+            'created_at' => $this->created_at?->toISOString(),
+            'likes_count' => $this->whenHas(
+                'likes_count',
+                fn (): int => (int) $this->likes_count
+            ),
             'user' => $this->whenLoaded('user', fn (): array => [
                 'id' => $this->user->id,
                 'name' => $this->user->name,

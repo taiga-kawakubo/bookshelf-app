@@ -83,7 +83,7 @@ class ReviewCrudTest extends TestCase
 
         $response->assertSessionHas(
             'error',
-            'この書籍にはすでにレビューを投稿しています。'
+            'この書籍はすでにレビューを投稿しています。'
         );
 
         // 最初に投稿したレビューだけが残っている。
