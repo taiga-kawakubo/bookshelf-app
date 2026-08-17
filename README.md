@@ -2,9 +2,9 @@
 
 Laravel 10を使用して開発した本レビューアプリです。
 
-ユーザーは書籍の一覧・詳細・ランキングを閲覧でき、ログイン後は書籍登録、レビュー投稿、お気に入り登録、レビューいいね、ジャンル管理を行うことができます。
+ユーザーは書籍の一覧・詳細・ランキングを閲覧でき、ログイン後は書籍登録、レビュー投稿、お気に入り登録、レビューいいね、ジャンル管理、読書計画、マイ読書レポート、通知確認を行うことができます。
 
-また、書籍情報を扱うREST APIを提供しており、書籍データの一覧取得・詳細取得・登録・更新・削除に対応しています。
+また、書籍情報を扱うREST APIを提供しており、書籍データの一覧取得・詳細取得・登録・更新・削除に対応しています。APIの書き込み系処理ではLaravel Sanctumによる認証を行い、更新・削除ではPolicyによる所有者確認を行います。
 
 ---
 
@@ -13,6 +13,9 @@ Laravel 10を使用して開発した本レビューアプリです。
 ## ゲストユーザー
 
 - 書籍一覧表示
+- キーワード検索
+- ジャンル絞り込み
+- 並び替え
 - 書籍詳細表示
 - 評価ランキング表示
 - 会員登録
@@ -22,6 +25,7 @@ Laravel 10を使用して開発した本レビューアプリです。
 
 - ログアウト
 - 書籍登録
+- ISBN検索による書籍情報取得
 - 書籍編集
 - 書籍削除
 - レビュー投稿
@@ -35,6 +39,22 @@ Laravel 10を使用して開発した本レビューアプリです。
 - ジャンル登録
 - ジャンル編集
 - ジャンル削除
+- マイ読書レポート表示
+- 読書計画一覧表示
+- 読書計画登録
+- 読書計画編集
+- 読書計画削除
+- 読書計画の読了状態への変更
+- 通知一覧表示
+- 通知の既読処理
+
+## 通知・バッチ処理
+
+- 読書計画の期日3日前通知
+- 読書計画の期日当日通知
+- 読書計画の期日3日後通知
+- 期限を過ぎた読書計画の期限超過ステータス更新
+- Schedulerによる日次バッチ実行
 
 ## API
 
@@ -43,6 +63,8 @@ Laravel 10を使用して開発した本レビューアプリです。
 - 書籍登録
 - 書籍更新
 - 書籍削除
+- SanctumによるAPI認証
+- PolicyによるAPI更新・削除の所有者認可
 
 ---
 
@@ -64,6 +86,10 @@ Laravel 10を使用して開発した本レビューアプリです。
 - Review : User = N : N（review_likes）
 - Review : ReviewLike = 1 : N
 - User : ReviewLike = 1 : N
+- User : ReadingPlan = 1 : N
+- Book : ReadingPlan = 1 : N
+- User : Notification = 1 : N（Polymorphic）
+- User : PersonalAccessToken = 1 : N（Polymorphic）
 
 ---
 
@@ -79,6 +105,8 @@ Laravel 10を使用して開発した本レビューアプリです。
 | JavaScript | Alpine.js |
 | 認証 | Laravel Fortify |
 | API認証基盤 | Laravel Sanctum |
+| 外部API | Google Books API |
+| バッチ処理 | Laravel Scheduler |
 | テスト | PHPUnit |
 | コード整形 | Laravel Pint |
 | 開発環境 | Docker |
@@ -92,13 +120,33 @@ Laravel 10を使用して開発した本レビューアプリです。
 
 ## 書籍API
 
-| Method | URI | Controller | Action | Route Name | 認証 |
-|---|---|---|---|---|---|
-| GET | /api/v1/books | Api\V1\BookController | index | api.v1.books.index | 不要 |
-| GET | /api/v1/books/{book} | Api\V1\BookController | show | api.v1.books.show | 不要 |
-| POST | /api/v1/books | Api\V1\BookController | store | api.v1.books.store | 不要 |
-| PUT | /api/v1/books/{book} | Api\V1\BookController | update | api.v1.books.update | 不要 |
-| DELETE | /api/v1/books/{book} | Api\V1\BookController | destroy | api.v1.books.destroy | 不要 |
+| Method | URI | Controller | Action | Route Name | 認証 | 認可 |
+|---|---|---|---|---|---|---|
+| GET | /api/v1/books | Api\V1\BookController | index | api.v1.books.index | 不要 | 不要 |
+| GET | /api/v1/books/{book} | Api\V1\BookController | show | api.v1.books.show | 不要 | 不要 |
+| POST | /api/v1/books | Api\V1\BookController | store | api.v1.books.store | 必要 | 不要 |
+| PUT | /api/v1/books/{book} | Api\V1\BookController | update | api.v1.books.update | 必要 | can:update,book |
+| DELETE | /api/v1/books/{book} | Api\V1\BookController | destroy | api.v1.books.destroy | 必要 | can:delete,book |
+
+## 書籍一覧APIの検索条件
+
+| Query | 内容 |
+|---|---|
+| keyword | タイトル・著者名検索 |
+| genre | ジャンルIDによる絞り込み |
+| sort | newest / oldest / rating / title |
+| page | ページ番号 |
+| per_page | 1ページあたりの取得件数 |
+
+## API認証
+
+書籍登録・更新・削除APIでは、SanctumのBearer Tokenを使用します。
+
+```text
+Authorization: Bearer {token}
+```
+
+書籍登録APIでは、リクエストの`user_id`ではなく、認証ユーザーのIDを登録者として使用します。
 
 ---
 
@@ -137,6 +185,14 @@ DB_PORT=3306
 DB_DATABASE=laravel
 DB_USERNAME=sail
 DB_PASSWORD=password
+```
+
+## Google Books API設定
+
+ISBN検索機能でGoogle Books APIを利用します。必要に応じて、`.env` に以下を設定します。
+
+```env
+GOOGLE_BOOKS_API_KEY=
 ```
 
 ## Composer依存関係をインストール
@@ -257,6 +313,33 @@ http://localhost:8080
 
 ---
 
+# バッチ処理
+
+読書計画に関する日次バッチは、Laravel Schedulerで実行します。
+
+| コマンド | 実行タイミング | 内容 |
+|---|---|---|
+| app:update-overdue-reading-plans | 毎日0:00 | 期日を過ぎた進行中の読書計画を期限超過に更新 |
+| app:send-reading-plan-reminders | 毎日8:00 | 読書計画の期日に応じた通知を作成 |
+
+手動で確認する場合は、以下のコマンドを使用します。
+
+```bash
+sail artisan app:update-overdue-reading-plans
+```
+
+```bash
+sail artisan app:send-reading-plan-reminders
+```
+
+Schedulerを手動実行する場合は、以下を使用します。
+
+```bash
+sail artisan schedule:run
+```
+
+---
+
 # テスト実行方法
 
 LaravelのFeatureテスト・Unitテストは以下のコマンドで実行できます。
@@ -319,12 +402,21 @@ Sailのエイリアスを設定していない場合は、以下のコマンド�
 - ログイン・ログアウト
 - 公開ページアクセス
 - 書籍一覧・詳細・登録・編集・更新・削除
+- 書籍検索・ジャンル絞り込み・並び替え
 - レビュー投稿・編集・更新・削除
 - お気に入り登録・解除
 - レビューいいね登録・解除
 - ジャンル一覧・詳細・登録・編集・更新・削除
 - ランキング表示
+- ISBN検索
+- マイ読書レポート
+- 読書計画
+- 通知機能
+- 日次バッチ処理
 - APIによる書籍一覧取得・詳細取得・登録・更新・削除
+- API認証・認可
+- FormRequestのバリデーション
+- API Resourceのレスポンス形式
 
 ---
 
@@ -366,8 +458,11 @@ docs/
 
 app/
 ├── Actions/
+├── Console/
+├── Enums/
 ├── Http/
 ├── Models/
+├── Notifications/
 ├── Policies/
 └── Providers/
 
@@ -394,4 +489,4 @@ tests/
 
 # 作成者
 
-taiga-kawakubo
+川久保　大河
