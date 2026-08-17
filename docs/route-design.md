@@ -1,258 +1,346 @@
+# Route設計書
+
 ## 概要
 
-BookShelf本レビューアプリの基礎機能に関するルーティング設計を定義する。
+この設計書では、BookShelf の Web 画面用 Route と API Route の責務、認証・認可、Route Model Binding の設計を整理する。
 
-本設計書では、以下の基礎機能を対象とする。
+対象範囲は以下とする。
 
-- 会員登録・ログイン・ログアウト機能
-- 書籍一覧・詳細・登録・編集・削除機能
-- レビュー投稿・編集・削除機能
-- お気に入り機能
-- レビューいいね機能
-- ジャンル管理機能
-- ランキング機能
-- 書籍API
+- 会員登録・ログイン・ログアウト
+- 書籍一覧・詳細・CRUD
+- レビュー投稿・編集・削除
+- レビューへのいいね
+- お気に入り書籍
+- ジャンル管理
+- ランキング
+- マイ読書レポート
+- 読書計画
+- 通知一覧・既読処理
+- ISBN検索
+- Sanctum を利用した書籍API
 
-## 設計方針
+## Route設計方針
 
-- トップ画面のURLは `/books` に統一する。
-- `/` は使用しない。
-- Webの認証必須Routeには `auth` ミドルウェアを使用する。
-- 書籍の編集・更新・削除には `BookPolicy` を使用する。
-- レビューの編集・更新・削除には `ReviewPolicy` を使用する。
-- APIは基礎段階では認証なしで実装する。
-- Route NameはLaravelのresource Routeの命名規則に合わせる。
-- `{book}`、`{review}`、`{genre}`にはRoute Model Bindingを使用する。
+### 1. 書籍一覧をアプリの入口にする
+
+BookShelf の中心機能は書籍の閲覧であるため、書籍一覧画面を主要な入口にする。
+
+| URI | 役割 |
+| --- | --- |
+| `/books` | 書籍一覧画面 |
+
+ルート `/` は、現時点では主要画面として使用しない。
+
+### 2. 閲覧系と操作系で認証要否を分ける
+
+未認証ユーザーでも利用できる閲覧系の Route と、ログインが必要な操作系の Route を分ける。
+
+| 種別 | 認証 | 主なRoute |
+| --- | --- | --- |
+| 閲覧系 | 不要 | 書籍一覧、書籍詳細、ランキング |
+| 操作系 | 必要 | 書籍登録、レビュー投稿、お気に入り、読書計画、通知、レポート |
+| API閲覧系 | 不要 | 書籍一覧API、書籍詳細API |
+| API書き込み系 | 必要 | 書籍登録API、書籍更新API、書籍削除API |
+
+### 3. 認可は操作対象ごとに分ける
+
+ログイン済みであっても、他ユーザーのデータを自由に操作できないようにする。
+
+| 対象 | 認可方式 | 主な確認内容 |
+| --- | --- | --- |
+| 書籍 | `BookPolicy` | 書籍の登録者本人か |
+| レビュー | `ReviewPolicy` | レビューの投稿者本人か |
+| 読書計画 | `ReadingPlanPolicy` | 読書計画の所有者本人か |
+| 通知 | `NotificationPolicy` | 通知の送信先本人か |
+
+Web側では Controller 内の `$this->authorize()` を中心に確認する。
+API側の更新・削除では、Route の `can` ミドルウェアで `BookPolicy` を確認する。
+
+### 4. 固定Routeを可変Routeより先に定義する
+
+`/books/create` や `/books/isbn/{isbn}` が `/books/{book}` と衝突しないよう、固定Routeを可変Routeより先に定義する。
+
+また、数値IDを想定する Route では `whereNumber()` を使用し、意図しない文字列がモデルIDとして扱われないようにする。
+
+### 5. Route名は機能単位で統一する
+
+Route名は画面や処理の責務が分かるように、機能名と操作名を組み合わせる。
+
+| 機能 | Route名の例 |
+| --- | --- |
+| 書籍 | `books.index`, `books.show`, `books.store` |
+| レビュー | `reviews.store`, `reviews.update`, `reviews.like` |
+| ジャンル | `genres.index`, `genres.show`, `genres.update` |
+| 読書計画 | `reading-plans.index`, `reading-plans.complete` |
+| 通知 | `notifications.index`, `notifications.read` |
+| API | `api.v1.books.index`, `api.v1.books.store` |
 
 ---
 
 # Web Route
 
-## 認証機能（Fortify）
+## 認証機能
 
-Fortifyが認証Routeを登録する。
+会員登録、ログイン、ログアウトなどの認証機能は Laravel Fortify によって提供される。
 
-| Method | URI | 処理 | Route Name | Middleware |
-| --- | --- | --- | --- | --- |
-| GET | `/register` | 会員登録画面を表示 | `register` | `guest` |
-| POST | `/register` | ユーザー登録処理 | ― | `guest` |
-| GET | `/login` | ログイン画面を表示 | `login` | `guest` |
-| POST | `/login` | ログイン処理 | ― | `guest` |
-| POST | `/logout` | ログアウト処理 | `logout` | `auth` |
+| 機能 | Route | 説明 |
+| --- | --- | --- |
+| 会員登録画面 | `GET /register` | Fortifyが提供 |
+| 会員登録処理 | `POST /register` | Fortifyが提供 |
+| ログイン画面 | `GET /login` | Fortifyが提供 |
+| ログイン処理 | `POST /login` | Fortifyが提供 |
+| ログアウト | `POST /logout` | Fortifyが提供 |
 
-### 補足
+## 未認証ユーザーも利用できるRoute
 
-- 会員登録成功後は `/login` へ遷移する。
-- ログイン成功後は `/books` へ遷移する。
-- ログアウト後は `/login` へ遷移する。
-- ログイン済みユーザーが `/login` または `/register` へアクセスした場合は、`/books` へリダイレクトする。
+| Method | URI | Route名 | Controller | Action | 役割 |
+| --- | --- | --- | --- | --- | --- |
+| GET | `/books` | `books.index` | `BookController` | `index` | 書籍一覧を表示 |
+| GET | `/books/{book}` | `books.show` | `BookController` | `show` | 書籍詳細を表示 |
+| GET | `/ranking` | `ranking.index` | `RankingController` | `index` | ランキングを表示 |
 
----
+### 書籍一覧
 
-## 書籍閲覧・ランキング機能
+`/books` では、一覧表示に加えて検索・絞り込み・並び替えを扱う。
 
-認証：不要
+| Query | 役割 |
+| --- | --- |
+| `keyword` | タイトル・著者名検索 |
+| `genre` | ジャンル絞り込み |
+| `sort` | 並び替え |
+| `page` | ページ番号 |
 
-| Method | URI | Controller | Action | Route Name | Middleware | Policy |
-| --- | --- | --- | --- | --- | --- | --- |
-| GET | `/books` | `BookController` | `index` | `books.index` | ― | ― |
-| GET | `/books/{book}` | `BookController` | `show` | `books.show` | ― | ― |
-| GET | `/ranking` | `RankingController` | `index` | `ranking.index` | ― | ― |
+## 認証ユーザーのみ利用できるRoute
 
-### 補足
+以下の Route は `auth` ミドルウェアの中に定義する。
 
-- `/books` は書籍一覧画面として使用する。
-- 書籍一覧は10件ごとにページネーションする。
-- `/books/{book}` と `/ranking` はゲストもアクセスできる。
+## 書籍管理
 
----
+| Method | URI | Route名 | Controller | Action | 役割 |
+| --- | --- | --- | --- | --- | --- |
+| GET | `/books/create` | `books.create` | `BookController` | `create` | 書籍登録画面を表示 |
+| POST | `/books` | `books.store` | `BookController` | `store` | 書籍を登録 |
+| GET | `/books/{book}/edit` | `books.edit` | `BookController` | `edit` | 書籍編集画面を表示 |
+| PUT | `/books/{book}` | `books.update` | `BookController` | `update` | 書籍を更新 |
+| DELETE | `/books/{book}` | `books.destroy` | `BookController` | `destroy` | 書籍を削除 |
 
-## 書籍管理機能
+書籍の編集・更新・削除では `BookPolicy` により、書籍の登録者本人のみ操作できるようにする。
 
-middleware: `auth`
+## レビュー
 
-| Method | URI | Controller | Action | Route Name | Middleware | Policy |
-| --- | --- | --- | --- | --- | --- | --- |
-| GET | `/books/create` | `BookController` | `create` | `books.create` | `auth` | ― |
-| POST | `/books` | `BookController` | `store` | `books.store` | `auth` | ― |
-| GET | `/books/{book}/edit` | `BookController` | `edit` | `books.edit` | `auth` | `BookPolicy@update` |
-| PUT | `/books/{book}` | `BookController` | `update` | `books.update` | `auth` | `BookPolicy@update` |
-| DELETE | `/books/{book}` | `BookController` | `destroy` | `books.destroy` | `auth` | `BookPolicy@delete` |
+| Method | URI | Route名 | Controller | Action | 役割 |
+| --- | --- | --- | --- | --- | --- |
+| POST | `/books/{book}/reviews` | `reviews.store` | `ReviewController` | `store` | 書籍にレビューを投稿 |
+| GET | `/reviews/{review}/edit` | `reviews.edit` | `ReviewController` | `edit` | レビュー編集画面を表示 |
+| PUT | `/reviews/{review}` | `reviews.update` | `ReviewController` | `update` | レビューを更新 |
+| DELETE | `/reviews/{review}` | `reviews.destroy` | `ReviewController` | `destroy` | レビューを削除 |
 
-### 補足
+レビューの編集・更新・削除では `ReviewPolicy` により、レビュー投稿者本人のみ操作できるようにする。
 
-- 書籍登録は認証済みユーザーが実行できる。
-- 書籍の編集・更新・削除は、書籍登録者本人だけが実行できる。
-- 別ユーザーによる編集・更新・削除はHTTP 403とする。
-- 未認証ユーザーは `/login` へリダイレクトする。
+## レビューいいね
 
----
+| Method | URI | Route名 | Controller | Action | 役割 |
+| --- | --- | --- | --- | --- | --- |
+| POST | `/reviews/{review}/like` | `reviews.like` | `ReviewLikeController` | `toggle` | レビューへのいいね登録・解除 |
 
-## レビュー機能
+同じRouteで、未いいねの場合は登録、いいね済みの場合は解除を行う。
 
-middleware: `auth`
+## ジャンル管理
 
-| Method | URI | Controller | Action | Route Name | Middleware | Policy |
-| --- | --- | --- | --- | --- | --- | --- |
-| POST | `/books/{book}/reviews` | `ReviewController` | `store` | `reviews.store` | `auth` | ― |
-| GET | `/reviews/{review}/edit` | `ReviewController` | `edit` | `reviews.edit` | `auth` | `ReviewPolicy@update` |
-| PUT | `/reviews/{review}` | `ReviewController` | `update` | `reviews.update` | `auth` | `ReviewPolicy@update` |
-| DELETE | `/reviews/{review}` | `ReviewController` | `destroy` | `reviews.destroy` | `auth` | `ReviewPolicy@delete` |
+| Method | URI | Route名 | Controller | Action | 役割 |
+| --- | --- | --- | --- | --- | --- |
+| GET | `/genres` | `genres.index` | `GenreController` | `index` | ジャンル一覧を表示 |
+| GET | `/genres/create` | `genres.create` | `GenreController` | `create` | ジャンル登録画面を表示 |
+| POST | `/genres` | `genres.store` | `GenreController` | `store` | ジャンルを登録 |
+| GET | `/genres/{genre}` | `genres.show` | `GenreController` | `show` | ジャンル別書籍一覧を表示 |
+| GET | `/genres/{genre}/edit` | `genres.edit` | `GenreController` | `edit` | ジャンル編集画面を表示 |
+| PUT | `/genres/{genre}` | `genres.update` | `GenreController` | `update` | ジャンルを更新 |
+| DELETE | `/genres/{genre}` | `genres.destroy` | `GenreController` | `destroy` | ジャンルを削除 |
 
-### 補足
+## お気に入り書籍
 
-- レビュー投稿は認証済みユーザーが実行できる。
-- 同一ユーザーが同一書籍へ投稿できるレビューは1件までとする。
-- レビューの編集・更新・削除は、レビュー投稿者本人だけが実行できる。
-- 別ユーザーによる編集・更新・削除はHTTP 403とする。
-- 未認証ユーザーは `/login` へリダイレクトする。
+| Method | URI | Route名 | Controller | Action | 役割 |
+| --- | --- | --- | --- | --- | --- |
+| GET | `/favorites` | `favorites.index` | `FavoriteController` | `index` | 自分のお気に入り書籍一覧を表示 |
+| POST | `/books/{book}/favorites` | `favorites.toggle` | `FavoriteController` | `toggle` | お気に入り登録・解除 |
 
----
+## マイ読書レポート
 
-## お気に入り機能
+| Method | URI | Route名 | Controller | Action | 役割 |
+| --- | --- | --- | --- | --- | --- |
+| GET | `/reports` | `reports.index` | `ReportController` | `index` | ログインユーザーの読書データを集計して表示 |
 
-middleware: `auth`
+レポートでは、ログインユーザーを起点にレビュー数、読了冊数、平均評価、評価分布、高評価書籍、ジャンル別評価傾向を集計する。
 
-| Method | URI | Controller | Action | Route Name | Middleware | Policy |
-| --- | --- | --- | --- | --- | --- | --- |
-| GET | `/favorites` | `FavoriteController` | `index` | `favorites.index` | `auth` | ― |
-| POST | `/books/{book}/favorites` | `FavoriteController` | `toggle` | `favorites.toggle` | `auth` | ― |
+## 読書計画
 
-### 補足
+| Method | URI | Route名 | Controller | Action | 役割 |
+| --- | --- | --- | --- | --- | --- |
+| GET | `/reading-plans` | `reading-plans.index` | `ReadingPlanController` | `index` | 自分の読書計画一覧を表示 |
+| GET | `/reading-plans/create` | `reading-plans.create` | `ReadingPlanController` | `create` | 読書計画登録画面を表示 |
+| POST | `/reading-plans` | `reading-plans.store` | `ReadingPlanController` | `store` | 読書計画を登録 |
+| GET | `/reading-plans/{plan}/edit` | `reading-plans.edit` | `ReadingPlanController` | `edit` | 読書計画編集画面を表示 |
+| PUT | `/reading-plans/{plan}` | `reading-plans.update` | `ReadingPlanController` | `update` | 読書計画を更新 |
+| DELETE | `/reading-plans/{plan}` | `reading-plans.destroy` | `ReadingPlanController` | `destroy` | 読書計画を削除 |
+| POST | `/reading-plans/{plan}/complete` | `reading-plans.complete` | `ReadingPlanController` | `complete` | 読書計画を読了に変更 |
 
-`FavoriteController@toggle`は、現在の登録状態に応じて以下を切り替える。
+読書計画の編集・更新・削除・読了では `ReadingPlanPolicy` により、読書計画の所有者本人のみ操作できるようにする。
 
-- 未登録の場合：お気に入りへ追加する。
-- 登録済みの場合：お気に入りを解除する。
+## 通知
 
----
+| Method | URI | Route名 | Controller | Action | 役割 |
+| --- | --- | --- | --- | --- | --- |
+| GET | `/notifications` | `notifications.index` | `NotificationController` | `index` | 自分宛ての通知一覧を表示 |
+| POST | `/notifications/{notification}/read` | `notifications.read` | `NotificationController` | `markAsRead` | 自分宛ての通知を既読にする |
 
-## レビューいいね機能
+通知の既読処理では `NotificationPolicy` により、通知の送信先本人のみ既読にできるようにする。
 
-middleware: `auth`
+## ISBN検索
 
-| Method | URI | Controller | Action | Route Name | Middleware | Policy |
-| --- | --- | --- | --- | --- | --- | --- |
-| POST | `/reviews/{review}/like` | `ReviewLikeController` | `toggle` | `reviews.like` | `auth` | ― |
+| Method | URI | Route名 | Controller | Action | 役割 |
+| --- | --- | --- | --- | --- | --- |
+| GET | `/books/isbn/{isbn}` | `books.isbn.show` | `IsbnLookupController` | `show` | ISBNから書籍情報を取得 |
 
-### 補足
+ISBN検索は書籍登録画面で利用する補助機能である。
+Google Books APIから取得した書籍情報をJSONで返す。
 
-`ReviewLikeController@toggle`は、現在の登録状態に応じて以下を切り替える。
-
-- 未登録の場合：レビューへいいねを追加する。
-- 登録済みの場合：レビューのいいねを解除する。
-
----
-
-## ジャンル管理機能
-
-middleware: `auth`
-
-| Method | URI | Controller | Action | Route Name | Middleware | Policy |
-| --- | --- | --- | --- | --- | --- | --- |
-| GET | `/genres` | `GenreController` | `index` | `genres.index` | `auth` | ― |
-| GET | `/genres/create` | `GenreController` | `create` | `genres.create` | `auth` | ― |
-| POST | `/genres` | `GenreController` | `store` | `genres.store` | `auth` | ― |
-| GET | `/genres/{genre}` | `GenreController` | `show` | `genres.show` | `auth` | ― |
-| GET | `/genres/{genre}/edit` | `GenreController` | `edit` | `genres.edit` | `auth` | ― |
-| PUT | `/genres/{genre}` | `GenreController` | `update` | `genres.update` | `auth` | ― |
-| DELETE | `/genres/{genre}` | `GenreController` | `destroy` | `genres.destroy` | `auth` | ― |
-
-### 補足
-
-- 書籍との紐付けがあるジャンルは削除しない。
-- 削除を拒否した場合は、`/genres`へリダイレクトしてエラーメッセージを表示する。
-- 基礎要件では、ジャンル操作は認証済みユーザーへ許可する。
+| 状態 | HTTPステータス | レスポンス内容 |
+| --- | --- | --- |
+| ISBNが13桁でない | 422 | `ISBNは13桁で入力してください。` |
+| 外部API取得失敗 | 502 | `書籍情報の取得に失敗しました。` |
+| 書籍情報なし | 404 | `書籍情報が見つかりませんでした。` |
 
 ---
 
 # API Route
 
-## Prefix
+## API設計方針
 
-```text
-/api/v1
-```
+API Route は `/api/v1` を共通prefixとし、Route名は `api.v1.` を共通prefixにする。
 
-基礎段階では、すべてのAPIエンドポイントを認証なしで実装する。
-
-| Method | URI | Controller | Action | Route Name | Middleware | Policy |
-| --- | --- | --- | --- | --- | --- | --- |
-| GET | `/api/v1/books` | `Api\V1\BookController` | `index` | `api.v1.books.index` | ― | ― |
-| GET | `/api/v1/books/{book}` | `Api\V1\BookController` | `show` | `api.v1.books.show` | ― | ― |
-| POST | `/api/v1/books` | `Api\V1\BookController` | `store` | `api.v1.books.store` | ― | ― |
-| PUT | `/api/v1/books/{book}` | `Api\V1\BookController` | `update` | `api.v1.books.update` | ― | ― |
-| DELETE | `/api/v1/books/{book}` | `Api\V1\BookController` | `destroy` | `api.v1.books.destroy` | ― | ― |
-
-## APIステータスコード
-
-| 処理 | 成功時 |
+| 項目 | 方針 |
 | --- | --- |
-| 書籍一覧取得 | `200 OK` |
-| 書籍詳細取得 | `200 OK` |
-| 書籍登録 | `201 Created` |
-| 書籍更新 | `200 OK` |
-| 書籍削除 | `204 No Content` |
+| バージョン | `/api/v1` |
+| Route名 | `api.v1.*` |
+| レスポンス | JSON |
+| 認証 | 書き込み系のみ `auth:sanctum` |
+| 認可 | 更新・削除で `can` ミドルウェアを使用 |
 
-## APIエラー
+## 書籍API
 
-| 状況 | ステータス |
+| Method | URI | Route名 | Controller | Action | 認証 | 認可 | 役割 |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| GET | `/api/v1/books` | `api.v1.books.index` | `Api\V1\BookController` | `index` | 不要 | 不要 | 書籍一覧を取得 |
+| GET | `/api/v1/books/{book}` | `api.v1.books.show` | `Api\V1\BookController` | `show` | 不要 | 不要 | 書籍詳細を取得 |
+| POST | `/api/v1/books` | `api.v1.books.store` | `Api\V1\BookController` | `store` | 必要 | 不要 | 書籍を登録 |
+| PUT | `/api/v1/books/{book}` | `api.v1.books.update` | `Api\V1\BookController` | `update` | 必要 | `can:update,book` | 書籍を更新 |
+| DELETE | `/api/v1/books/{book}` | `api.v1.books.destroy` | `Api\V1\BookController` | `destroy` | 必要 | `can:delete,book` | 書籍を削除 |
+
+## 書籍一覧API
+
+`GET /api/v1/books` では、Web側の書籍一覧と同じように検索・絞り込み・並び替えを扱う。
+
+| Query | バリデーション | 役割 |
+| --- | --- | --- |
+| `keyword` | 文字列、255文字以内 | タイトル・著者名検索 |
+| `genre` | 存在するジャンルID | ジャンル絞り込み |
+| `sort` | `newest`, `oldest`, `rating`, `title` | 並び替え |
+| `page` | 1以上の整数 | ページ番号 |
+| `per_page` | 1以上100以下の整数 | 1ページあたりの件数 |
+
+一覧レスポンスでは、書籍情報、ジャンル、平均評価を返す。
+また、追加情報としてジャンル一覧を `genres` に含める。
+
+## 書籍詳細API
+
+`GET /api/v1/books/{book}` では、指定した書籍の詳細、ジャンル、レビューを返す。
+
+レビューには以下の情報を含める。
+
+| 項目 | 内容 |
 | --- | --- |
-| 対象書籍が存在しない | `404 Not Found` |
-| バリデーションエラー | `422 Unprocessable Entity` |
+| `id` | レビューID |
+| `rating` | 評価 |
+| `comment` | コメント |
+| `created_at` | レビュー作成日時 |
+| `likes_count` | レビューへのいいね数 |
+| `user` | レビュー投稿者のID・名前 |
 
-### 補足
+## 書籍登録API
 
-- 基礎段階では、書籍登録APIはリクエストの`user_id`を使用する。
-- 書籍更新APIでは`user_id`を受け取らず、登録時の所有者を維持する。
-- 書籍削除成功時はレスポンスボディを返さない。
+`POST /api/v1/books` は Sanctum 認証済みユーザーのみ利用できる。
+
+登録者IDはリクエストの `user_id` ではなく、アクセストークンから取得できる認証ユーザーIDを使用する。
+そのため、リクエストから `user_id` は受け取らない。
+
+書籍登録とジャンル紐付けは同じトランザクション内で実行する。
+
+## 書籍更新API
+
+`PUT /api/v1/books/{book}` は Sanctum 認証に加えて、`can:update,book` による所有者確認を行う。
+
+更新時も `user_id` は変更しない。
+書籍情報の更新とジャンル紐付けの更新は同じトランザクション内で実行する。
+
+## 書籍削除API
+
+`DELETE /api/v1/books/{book}` は Sanctum 認証に加えて、`can:delete,book` による所有者確認を行う。
+
+削除成功時は `204 No Content` を返す。
+
+## APIエラーレスポンス
+
+| 状態 | HTTPステータス | message |
+| --- | --- | --- |
+| 未認証 | 401 | `認証が必要です。` |
+| 認可エラー | 403 | `この操作を行う権限がありません。` |
+| 対象書籍なし | 404 | `対象の書籍が見つかりませんでした。` |
+| APIエンドポイントなし | 404 | `エンドポイントが見つかりません。` |
+| バリデーションエラー | 422 | `入力内容に誤りがあります。` |
 
 ---
 
-# Middleware・Policy一覧
+# Middleware・Policy
 
 ## Middleware
 
-| Middleware | 役割 |
-| --- | --- |
-| `guest` | 未ログインユーザーだけが認証画面へアクセスできるようにする |
-| `auth` | Web Routeでログイン済みか確認する |
+| Middleware | 使用箇所 | 役割 |
+| --- | --- | --- |
+| `guest` | 会員登録・ログイン画面 | 未ログインユーザーのみ許可 |
+| `auth` | Webの操作系Route | ログインユーザーのみ許可 |
+| `auth:sanctum` | APIの書き込み系Route | APIトークン認証済みユーザーのみ許可 |
+| `can:update,book` | API書籍更新 | 書籍所有者のみ更新許可 |
+| `can:delete,book` | API書籍削除 | 書籍所有者のみ削除許可 |
 
 ## Policy
 
-| Model | Policy | Ability | 対象Route |
-| --- | --- | --- | --- |
-| `Book` | `BookPolicy` | `update` | `books.edit`、`books.update` |
-| `Book` | `BookPolicy` | `delete` | `books.destroy` |
-| `Review` | `ReviewPolicy` | `update` | `reviews.edit`、`reviews.update` |
-| `Review` | `ReviewPolicy` | `delete` | `reviews.destroy` |
-
-## 責務分担
-
-- Middleware：ユーザーが認証済みかを確認する。
-- Policy：認証済みユーザーが対象データを操作できるか判定する。
-- Controller：認証・認可通過後の処理を行う。
+| Policy | 対象 | 主な使用箇所 |
+| --- | --- | --- |
+| `BookPolicy` | `Book` | 書籍編集・更新・削除、API更新・削除 |
+| `ReviewPolicy` | `Review` | レビュー編集・更新・削除 |
+| `ReadingPlanPolicy` | `ReadingPlan` | 読書計画編集・更新・削除・読了 |
+| `NotificationPolicy` | `DatabaseNotification` | 通知の既読処理 |
 
 ---
 
-# Controller一覧
+# Controller責務
 
-## Web
+| Controller | 役割 |
+| --- | --- |
+| `BookController` | Web側の書籍一覧・詳細・登録・編集・更新・削除 |
+| `ReviewController` | レビュー登録・編集・更新・削除 |
+| `ReviewLikeController` | レビューいいねの登録・解除 |
+| `FavoriteController` | お気に入り一覧・登録・解除 |
+| `GenreController` | ジャンル一覧・詳細・登録・編集・更新・削除 |
+| `RankingController` | 書籍ランキング表示 |
+| `ReportController` | マイ読書レポート表示 |
+| `ReadingPlanController` | 読書計画一覧・登録・編集・更新・削除・読了 |
+| `NotificationController` | 通知一覧・既読処理 |
+| `IsbnLookupController` | ISBNによる書籍情報取得 |
+| `Api\V1\BookController` | API側の書籍一覧・詳細・登録・更新・削除 |
 
-- `BookController`
-- `ReviewController`
-- `FavoriteController`
-- `ReviewLikeController`
-- `GenreController`
-- `RankingController`
-
-## 認証
-
-- Laravel FortifyのControllerを使用する。
-
-## API
-
-- `Api\V1\BookController`
+Controller は、画面表示・リダイレクト・認可呼び出し・データ取得の入口を担当する。
+入力値の検証は Request、APIレスポンスの形は Resource に分ける。
 
 ---
 
@@ -260,27 +348,12 @@ middleware: `auth`
 
 URLパラメータをもとに、Laravelが対応するModelを自動取得する。
 
-## Book
-
-| URI | Controller | Action |
+| パラメータ | Model | 主なRoute |
 | --- | --- | --- |
-| `/books/{book}` | `BookController` | `show`、`update`、`destroy` |
-| `/books/{book}/edit` | `BookController` | `edit` |
-| `/books/{book}/favorites` | `FavoriteController` | `toggle` |
-| `/books/{book}/reviews` | `ReviewController` | `store` |
-| `/api/v1/books/{book}` | `Api\V1\BookController` | `show`、`update`、`destroy` |
+| `{book}` | `Book` | `/books/{book}`, `/api/v1/books/{book}` |
+| `{review}` | `Review` | `/reviews/{review}`, `/reviews/{review}/like` |
+| `{genre}` | `Genre` | `/genres/{genre}` |
+| `{plan}` | `ReadingPlan` | `/reading-plans/{plan}` |
+| `{notification}` | `DatabaseNotification` | `/notifications/{notification}/read` |
 
-## Review
-
-| URI | Controller | Action |
-| --- | --- | --- |
-| `/reviews/{review}/edit` | `ReviewController` | `edit` |
-| `/reviews/{review}` | `ReviewController` | `update`、`destroy` |
-| `/reviews/{review}/like` | `ReviewLikeController` | `toggle` |
-
-## Genre
-
-| URI | Controller | Action |
-| --- | --- | --- |
-| `/genres/{genre}` | `GenreController` | `show`、`update`、`destroy` |
-| `/genres/{genre}/edit` | `GenreController` | `edit` |
+`{book}`、`{review}`、`{genre}` はWeb Routeで `whereNumber()` を指定し、数値IDのみを受け付ける。
