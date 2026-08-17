@@ -56,7 +56,7 @@ class UpdateGenreRequestTest extends TestCase
         // Routeのパラメータ配列を初期化する
         $route->bind($request);
 
-        // bookパラメータを更新対象genreモデルへ置き換える
+        // genreパラメータを更新対象genreモデルへ置き換える
         $route->setParameter('genre', $this->genre);
 
         $request->setRouteResolver(fn () => $route);
@@ -133,6 +133,22 @@ class UpdateGenreRequestTest extends TestCase
         }
     }
 
+    public function test_別のジャンルと同じ名前の場合はバリデーションエラーになる(): void
+    {
+        $otherGenre = $this->createGenre('ミステリー');
+
+        $validator = $this->makeValidator(
+            $this->validData([
+                'name' => $otherGenre->name,
+            ])
+        );
+
+        $this->assertTrue($validator->fails());
+        $this->assertTrue(
+            $validator->errors()->has('name')
+        );
+    }
+
     public function test_ジャンル名が50文字の場合はバリデーションを通過する(): void
     {
         $validator = $this->makeValidator(
@@ -149,22 +165,6 @@ class UpdateGenreRequestTest extends TestCase
         $validator = $this->makeValidator(
             $this->validData([
                 'name' => str_repeat('あ', 51),
-            ])
-        );
-
-        $this->assertTrue($validator->fails());
-        $this->assertTrue(
-            $validator->errors()->has('name')
-        );
-    }
-
-    public function test_別のジャンルと同じ名前の場合はバリデーションエラーになる(): void
-    {
-        $otherGenre = $this->createGenre('ミステリー');
-
-        $validator = $this->makeValidator(
-            $this->validData([
-                'name' => $otherGenre->name,
             ])
         );
 

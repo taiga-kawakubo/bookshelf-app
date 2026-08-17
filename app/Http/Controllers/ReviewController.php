@@ -28,7 +28,7 @@ class ReviewController extends Controller
                 ->route('books.show', $book)
                 ->with(
                     'error',
-                    'この書籍にはすでにレビューを投稿しています。'
+                    'この書籍はすでにレビューを投稿しています。'
                 );
         }
 

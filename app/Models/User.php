@@ -82,7 +82,7 @@ class User extends Authenticatable
     /**
      * このユーザーと結びつく読書計画を取得
      */
-    public function readingPlan(): HasMany
+    public function readingPlans(): HasMany
     {
         return $this->hasMany(ReadingPlan::class);
     }

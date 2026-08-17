@@ -2,7 +2,9 @@
 
 namespace Tests\Unit\Models;
 
+use App\Enums\ReadingPlanStatus;
 use App\Models\Book;
+use App\Models\ReadingPlan;
 use App\Models\Review;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -12,7 +14,7 @@ class UserTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_このユーザーと結びつく書籍を取得する(): void
+    public function test_ユーザーと結びつく書籍を取得する(): void
     {
         $user = User::factory()->create();
 
@@ -35,7 +37,7 @@ class UserTest extends TestCase
         );
     }
 
-    public function test_このユーザーと結びつくレビューを取得する(): void
+    public function test_ユーザーと結びつくレビューを取得する(): void
     {
         $user = User::factory()->create();
 
@@ -67,7 +69,7 @@ class UserTest extends TestCase
         );
     }
 
-    public function test_このユーザーと結びつくお気に入りを取得する(): void
+    public function test_ユーザーと結びつくお気に入りを取得する(): void
     {
         $user = User::factory()->create();
 
@@ -111,7 +113,7 @@ class UserTest extends TestCase
         );
     }
 
-    public function test_このユーザーと結びつくレビューのいいねを取得する(): void
+    public function test_ユーザーと結びつくレビューのいいねを取得する(): void
     {
         $likingUser = User::factory()->create();
 
@@ -159,6 +161,40 @@ class UserTest extends TestCase
                 $review2->id,
             ],
             $likingUser->likedReviews->pluck('id')->all()
+        );
+    }
+
+    public function test_ユーザーは複数の読書計画を取得する(): void
+    {
+        $user = User::factory()->create();
+
+        $book1 = Book::factory()->create();
+        $book2 = Book::factory()->create();
+
+        $readingPlan1 = ReadingPlan::create([
+            'user_id' => $user->id,
+            'book_id' => $book1->id,
+            'target_date' => '2026-07-31',
+            'status' => ReadingPlanStatus::InProgress,
+        ]);
+
+        $readingPlan2 = ReadingPlan::create([
+            'user_id' => $user->id,
+            'book_id' => $book2->id,
+            'target_date' => '2026-08-31',
+            'status' => ReadingPlanStatus::Completed,
+        ]);
+
+        $user->load('readingPlans');
+
+        $this->assertCount(2, $user->readingPlans);
+
+        $this->assertEqualsCanonicalizing(
+            [
+                $readingPlan1->id,
+                $readingPlan2->id,
+            ],
+            $user->readingPlans->pluck('id')->all()
         );
     }
 }

@@ -81,6 +81,26 @@ class StoreGenreRequestTest extends TestCase
         }
     }
 
+    public function test_登録済みのジャンル名の場合はバリデーションエラーになる(): void
+    {
+        DB::table('genres')->insert([
+            'name' => 'ミステリー',
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        $validator = $this->makeValidator(
+            $this->validData([
+                'name' => 'ミステリー',
+            ])
+        );
+
+        $this->assertTrue($validator->fails());
+        $this->assertTrue(
+            $validator->errors()->has('name')
+        );
+    }
+
     public function test_ジャンル名が50文字の場合はバリデーションを通過する(): void
     {
         $validator = $this->makeValidator(
@@ -97,26 +117,6 @@ class StoreGenreRequestTest extends TestCase
         $validator = $this->makeValidator(
             $this->validData([
                 'name' => str_repeat('あ', 51),
-            ])
-        );
-
-        $this->assertTrue($validator->fails());
-        $this->assertTrue(
-            $validator->errors()->has('name')
-        );
-    }
-
-    public function test_登録済みのジャンル名の場合はバリデーションエラーになる(): void
-    {
-        DB::table('genres')->insert([
-            'name' => 'ミステリー',
-            'created_at' => now(),
-            'updated_at' => now(),
-        ]);
-
-        $validator = $this->makeValidator(
-            $this->validData([
-                'name' => 'ミステリー',
             ])
         );
 

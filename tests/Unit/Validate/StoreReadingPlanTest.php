@@ -56,20 +56,20 @@ class StoreReadingPlanTest extends TestCase
         $this->assertArrayHasKey('target_date', $validator->errors()->toArray());
     }
 
-    public function test_存在しない書籍はバリデーションエラーになる(): void
+    public function test_書籍_i_dが整数でない場合はバリデーションエラーになる(): void
     {
         $validator = $this->makeValidator($this->validData([
-            'book_id' => 999999,
+            'book_id' => 'abc',
         ]));
 
         $this->assertTrue($validator->fails());
         $this->assertArrayHasKey('book_id', $validator->errors()->toArray());
     }
 
-    public function test_書籍_i_dが整数でない場合はバリデーションエラーになる(): void
+    public function test_存在しない書籍はバリデーションエラーになる(): void
     {
         $validator = $this->makeValidator($this->validData([
-            'book_id' => 'abc',
+            'book_id' => 999999,
         ]));
 
         $this->assertTrue($validator->fails());

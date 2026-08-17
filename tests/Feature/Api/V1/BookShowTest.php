@@ -12,6 +12,21 @@ class BookShowTest extends TestCase
 {
     use RefreshDatabase;
 
+    public function test_未認証ユーザーは書籍詳細を取得できる(): void
+    {
+        $bookOwner = User::factory()->create();
+        $book = Book::factory()->create([
+            'user_id' => $bookOwner->id,
+            'title' => '公開詳細で取得する書籍',
+        ]);
+
+        $response = $this->getJson(route('api.v1.books.show', $book));
+
+        $response->assertOk();
+        $response->assertJsonPath('data.id', $book->id);
+        $response->assertJsonPath('data.title', '公開詳細で取得する書籍');
+    }
+
     public function test_書籍詳細は指定した書籍情報をjson形式で返す(): void
     {
         $bookOwner = User::factory()->create([
@@ -44,7 +59,17 @@ class BookShowTest extends TestCase
             'comment' => '詳細APIで返すレビューです。',
         ]);
 
-        $response = $this->getJson(route('api.v1.books.show', $book));
+        $likers = User::factory()
+            ->count(2)
+            ->create();
+
+        $review->likedByUsers()->attach(
+            $likers->pluck('id')->all()
+        );
+
+        $response = $this->getJson(
+            route('api.v1.books.show', $book)
+        );
 
         $response->assertOk();
 
@@ -69,6 +94,8 @@ class BookShowTest extends TestCase
                         'id',
                         'rating',
                         'comment',
+                        'created_at',
+                        'likes_count',
                         'user' => [
                             'id',
                             'name',
@@ -92,9 +119,26 @@ class BookShowTest extends TestCase
 
         $response->assertJsonPath('data.reviews.0.id', $review->id);
         $response->assertJsonPath('data.reviews.0.rating', 5);
-        $response->assertJsonPath('data.reviews.0.comment', '詳細APIで返すレビューです。');
-        $response->assertJsonPath('data.reviews.0.user.id', $reviewer->id);
-        $response->assertJsonPath('data.reviews.0.user.name', 'レビュー投稿者');
+        $response->assertJsonPath(
+            'data.reviews.0.comment',
+            '詳細APIで返すレビューです。'
+        );
+        $response->assertJsonPath(
+            'data.reviews.0.created_at',
+            $review->created_at->toISOString()
+        );
+        $response->assertJsonPath(
+            'data.reviews.0.likes_count',
+            2
+        );
+        $response->assertJsonPath(
+            'data.reviews.0.user.id',
+            $reviewer->id
+        );
+        $response->assertJsonPath(
+            'data.reviews.0.user.name',
+            'レビュー投稿者'
+        );
     }
 
     public function test_書籍詳細は指定した書籍だけを返す(): void
@@ -126,31 +170,6 @@ class BookShowTest extends TestCase
         ]);
     }
 
-    public function test_レビューがない書籍詳細はreviewsを空配列で返す(): void
-    {
-        $bookOwner = User::factory()->create();
-
-        $genre = Genre::create([
-            'name' => '技術書',
-        ]);
-
-        $book = Book::factory()->create([
-            'user_id' => $bookOwner->id,
-            'title' => 'レビューがない書籍',
-        ]);
-
-        $book->genres()->attach($genre->id);
-
-        $response = $this->getJson(route('api.v1.books.show', $book));
-
-        $response->assertOk();
-
-        $response->assertJsonPath('data.id', $book->id);
-        $response->assertJsonPath('data.genres.0.id', $genre->id);
-        $response->assertJsonPath('data.genres.0.name', '技術書');
-        $response->assertJsonPath('data.reviews', []);
-    }
-
     public function test_存在しない書籍詳細は404を返す(): void
     {
         $response = $this->getJson(route('api.v1.books.show', 999999));
@@ -176,5 +195,62 @@ class BookShowTest extends TestCase
         $response->assertJsonStructure([
             'message',
         ]);
+    }
+
+    public function test_いいねがないレビューはlikes_countが0になる(): void
+    {
+        $bookOwner = User::factory()->create();
+        $reviewer = User::factory()->create();
+
+        $book = Book::factory()->create([
+            'user_id' => $bookOwner->id,
+        ]);
+
+        $review = $book->reviews()->create([
+            'user_id' => $reviewer->id,
+            'rating' => 4,
+            'comment' => 'いいねなしレビュー',
+        ]);
+
+        $response = $this->getJson(
+            route('api.v1.books.show', $book)
+        );
+
+        $response->assertOk();
+
+        $response->assertJsonPath(
+            'data.reviews.0.id',
+            $review->id
+        );
+
+        $response->assertJsonPath(
+            'data.reviews.0.likes_count',
+            0
+        );
+    }
+
+    public function test_レビューがない書籍詳細はreviewsを空配列で返す(): void
+    {
+        $bookOwner = User::factory()->create();
+
+        $genre = Genre::create([
+            'name' => '技術書',
+        ]);
+
+        $book = Book::factory()->create([
+            'user_id' => $bookOwner->id,
+            'title' => 'レビューがない書籍',
+        ]);
+
+        $book->genres()->attach($genre->id);
+
+        $response = $this->getJson(route('api.v1.books.show', $book));
+
+        $response->assertOk();
+
+        $response->assertJsonPath('data.id', $book->id);
+        $response->assertJsonPath('data.genres.0.id', $genre->id);
+        $response->assertJsonPath('data.genres.0.name', '技術書');
+        $response->assertJsonPath('data.reviews', []);
     }
 }

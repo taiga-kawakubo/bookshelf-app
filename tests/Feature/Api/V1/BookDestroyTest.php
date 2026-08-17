@@ -6,6 +6,7 @@ use App\Models\Book;
 use App\Models\Genre;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Laravel\Sanctum\Sanctum;
 use Tests\TestCase;
 
 class BookDestroyTest extends TestCase
@@ -37,6 +38,8 @@ class BookDestroyTest extends TestCase
 
         $targetBook->genres()->attach($genre->id);
         $otherBook->genres()->attach($genre->id);
+
+        Sanctum::actingAs($bookOwner);
 
         $targetReview = $targetBook->reviews()->create([
             'user_id' => $reviewer->id,
@@ -110,6 +113,57 @@ class BookDestroyTest extends TestCase
         ]);
     }
 
+    public function test_未認証ユーザーは書籍を削除できない(): void
+    {
+        $bookOwner = User::factory()->create();
+        $book = Book::factory()->create([
+            'user_id' => $bookOwner->id,
+            'title' => '削除されない書籍',
+            'isbn' => '6234567890126',
+        ]);
+
+        $response = $this->deleteJson(
+            route('api.v1.books.destroy', $book)
+        );
+
+        $response->assertUnauthorized();
+        $response->assertJsonPath('message', '認証が必要です。');
+
+        $this->assertDatabaseHas('books', [
+            'id' => $book->id,
+            'user_id' => $bookOwner->id,
+        ]);
+    }
+
+    public function test_所有者でないユーザーは書籍を削除できない(): void
+    {
+        $bookOwner = User::factory()->create();
+        $anotherUser = User::factory()->create();
+        $book = Book::factory()->create([
+            'user_id' => $bookOwner->id,
+            'title' => '削除されない書籍',
+            'isbn' => '6234567890127',
+        ]);
+
+        Sanctum::actingAs($anotherUser);
+
+        $response = $this->deleteJson(
+            route('api.v1.books.destroy', $book)
+        );
+
+        $response->assertForbidden();
+        $response->assertJsonPath(
+            'message',
+            'この操作を行う権限がありません。'
+        );
+
+        $this->assertDatabaseHas('books', [
+            'id' => $book->id,
+            'user_id' => $bookOwner->id,
+            'title' => '削除されない書籍',
+        ]);
+    }
+
     public function test_存在しない書籍削除は404を返す(): void
     {
         $bookOwner = User::factory()->create();
@@ -119,6 +173,8 @@ class BookDestroyTest extends TestCase
             'title' => '削除されない書籍',
             'isbn' => '6234567890125',
         ]);
+
+        Sanctum::actingAs($bookOwner);
 
         $response = $this->deleteJson(route('api.v1.books.destroy', 999999));
 

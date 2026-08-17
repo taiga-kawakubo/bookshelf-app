@@ -6,6 +6,7 @@ use App\Models\Book;
 use App\Models\Genre;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Laravel\Sanctum\Sanctum;
 use Tests\TestCase;
 
 class BookStoreTest extends TestCase
@@ -46,7 +47,6 @@ class BookStoreTest extends TestCase
     private function validData(array $override = []): array
     {
         return array_merge([
-            'user_id' => $this->bookOwner->id,
             'title' => 'API登録確認の書籍',
             'author' => '登録 太郎',
             'isbn' => '4234567890123',
@@ -57,8 +57,15 @@ class BookStoreTest extends TestCase
         ], $override);
     }
 
+    private function authenticateBookOwner(): void
+    {
+        Sanctum::actingAs($this->bookOwner);
+    }
+
     public function test_書籍登録は有効な値で書籍とジャンルを登録する(): void
     {
+        $this->authenticateBookOwner();
+
         $payload = $this->validData([
             'genres' => [
                 $this->firstGenre->id,
@@ -138,6 +145,8 @@ class BookStoreTest extends TestCase
 
     public function test_書籍登録は任意項目がnullでも登録できる(): void
     {
+        $this->authenticateBookOwner();
+
         $payload = $this->validData([
             'isbn' => '4234567890124',
             'description' => null,
@@ -169,6 +178,8 @@ class BookStoreTest extends TestCase
 
     public function test_書籍登録は任意項目が未入力でも登録できる(): void
     {
+        $this->authenticateBookOwner();
+
         $payload = $this->validData([
             'isbn' => '4234567890125',
         ]);
@@ -198,8 +209,51 @@ class BookStoreTest extends TestCase
         ]);
     }
 
+    public function test_リクエストのuser_idではなく認証ユーザーの_i_dで書籍登録する(): void
+    {
+        $anotherUser = User::factory()->create();
+        $this->authenticateBookOwner();
+
+        $payload = $this->validData([
+            'user_id' => $anotherUser->id,
+            'isbn' => '4234567890128',
+        ]);
+
+        $response = $this->postJson(route('api.v1.books.store'), $payload);
+
+        $response->assertCreated();
+        $response->assertJsonPath('data.user_id', $this->bookOwner->id);
+
+        $bookId = $response->json('data.id');
+
+        $this->assertDatabaseHas('books', [
+            'id' => $bookId,
+            'user_id' => $this->bookOwner->id,
+        ]);
+        $this->assertDatabaseMissing('books', [
+            'id' => $bookId,
+            'user_id' => $anotherUser->id,
+        ]);
+    }
+
+    public function test_未認証ユーザーは書籍登録できない(): void
+    {
+        $response = $this->postJson(
+            route('api.v1.books.store'),
+            $this->validData()
+        );
+
+        $response->assertUnauthorized();
+        $response->assertJsonPath('message', '認証が必要です。');
+
+        $this->assertDatabaseCount('books', 0);
+        $this->assertDatabaseCount('book_genre', 0);
+    }
+
     public function test_書籍登録はバリデーションエラー時に書籍とジャンル紐付けを保存しない(): void
     {
+        $this->authenticateBookOwner();
+
         $payload = $this->validData([
             'genres' => [],
         ]);
@@ -221,49 +275,10 @@ class BookStoreTest extends TestCase
         $this->assertDatabaseCount('book_genre', 0);
     }
 
-    public function test_存在しない登録者では書籍登録できない(): void
-    {
-        $missingUserId = User::query()->max('id') + 1;
-
-        $payload = $this->validData([
-            'user_id' => $missingUserId,
-            'isbn' => '4234567890128',
-        ]);
-
-        $response = $this->postJson(route('api.v1.books.store'), $payload);
-
-        $response->assertStatus(422);
-        $response->assertJsonPath('message', '入力内容に誤りがあります。');
-        $response->assertJsonValidationErrors([
-            'user_id',
-        ]);
-        $response->assertJsonPath('errors.user_id.0', '指定された登録者は存在しません。');
-
-        $this->assertDatabaseCount('books', 0);
-        $this->assertDatabaseCount('book_genre', 0);
-    }
-
-    public function test_isbnが13桁ではない場合は書籍登録できない(): void
-    {
-        $payload = $this->validData([
-            'isbn' => '123456789012',
-        ]);
-
-        $response = $this->postJson(route('api.v1.books.store'), $payload);
-
-        $response->assertStatus(422);
-        $response->assertJsonPath('message', '入力内容に誤りがあります。');
-        $response->assertJsonValidationErrors([
-            'isbn',
-        ]);
-        $response->assertJsonPath('errors.isbn.0', 'ISBNは13桁で入力してください。');
-
-        $this->assertDatabaseCount('books', 0);
-        $this->assertDatabaseCount('book_genre', 0);
-    }
-
     public function test_登録済みisbnでは書籍登録できない(): void
     {
+        $this->authenticateBookOwner();
+
         $existingOwner = User::factory()->create();
 
         Book::factory()->create([
@@ -296,6 +311,8 @@ class BookStoreTest extends TestCase
 
     public function test_ジャンル未指定では書籍登録できない(): void
     {
+        $this->authenticateBookOwner();
+
         $payload = $this->validData([
             'isbn' => '4234567890129',
         ]);
@@ -317,6 +334,8 @@ class BookStoreTest extends TestCase
 
     public function test_存在しないジャンルでは書籍登録できない(): void
     {
+        $this->authenticateBookOwner();
+
         $payload = $this->validData([
             'isbn' => '4234567890127',
             'genres' => [999999],
@@ -333,6 +352,27 @@ class BookStoreTest extends TestCase
             '選択されたジャンルは存在しません。',
             $response->json('errors')['genres.0'][0]
         );
+
+        $this->assertDatabaseCount('books', 0);
+        $this->assertDatabaseCount('book_genre', 0);
+    }
+
+    public function test_isbnが13桁ではない場合は書籍登録できない(): void
+    {
+        $this->authenticateBookOwner();
+
+        $payload = $this->validData([
+            'isbn' => '123456789012',
+        ]);
+
+        $response = $this->postJson(route('api.v1.books.store'), $payload);
+
+        $response->assertStatus(422);
+        $response->assertJsonPath('message', '入力内容に誤りがあります。');
+        $response->assertJsonValidationErrors([
+            'isbn',
+        ]);
+        $response->assertJsonPath('errors.isbn.0', 'ISBNは13桁で入力してください。');
 
         $this->assertDatabaseCount('books', 0);
         $this->assertDatabaseCount('book_genre', 0);

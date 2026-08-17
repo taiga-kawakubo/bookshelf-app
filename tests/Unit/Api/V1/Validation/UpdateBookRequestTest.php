@@ -239,6 +239,17 @@ class UpdateBookRequestTest extends TestCase
         );
     }
 
+    public function test_isbnが13桁の場合バリデーションを通過する(): void
+    {
+        $validator = $this->makeValidator(
+            $this->validData([
+                'isbn' => '1111111111111',
+            ])
+        );
+
+        $this->assertFalse($validator->fails());
+    }
+
     public function test_isbnが13桁でない場合はバリデーションエラーになる(): void
     {
         $invalidIsbns = [

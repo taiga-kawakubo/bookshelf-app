@@ -124,6 +124,49 @@ class ReviewLikeTest extends TestCase
         $this->assertDatabaseCount('review_likes', 2);
     }
 
+    public function test_レビューいいね登録解除後にリダイレクト先で成功メッセージが表示される(): void
+    {
+        $bookOwner = User::factory()->create();
+        $reviewer = User::factory()->create();
+        $likeUser = User::factory()->create();
+
+        $book = Book::factory()->create([
+            'user_id' => $bookOwner->id,
+        ]);
+
+        $review = $book->reviews()->create([
+            'user_id' => $reviewer->id,
+            'rating' => 5,
+            'comment' => 'メッセージ確認用レビューです。',
+        ]);
+
+        $response = $this
+            ->actingAs($likeUser)
+            ->followingRedirects()
+            ->post(route('reviews.like', $review));
+
+        $response->assertOk();
+        $response->assertSeeText('レビューにいいねしました。');
+
+        $this->assertDatabaseHas('review_likes', [
+            'user_id' => $likeUser->id,
+            'review_id' => $review->id,
+        ]);
+
+        $response = $this
+            ->actingAs($likeUser)
+            ->followingRedirects()
+            ->post(route('reviews.like', $review));
+
+        $response->assertOk();
+        $response->assertSeeText('レビューのいいねを解除しました。');
+
+        $this->assertDatabaseMissing('review_likes', [
+            'user_id' => $likeUser->id,
+            'review_id' => $review->id,
+        ]);
+    }
+
     public function test_未認証ユーザーはレビューいいねを登録解除できない(): void
     {
         $bookOwner = User::factory()->create();
@@ -175,48 +218,5 @@ class ReviewLikeTest extends TestCase
         $response->assertNotFound();
 
         $this->assertDatabaseCount('review_likes', 0);
-    }
-
-    public function test_レビューいいね登録解除後にリダイレクト先で成功メッセージが表示される(): void
-    {
-        $bookOwner = User::factory()->create();
-        $reviewer = User::factory()->create();
-        $likeUser = User::factory()->create();
-
-        $book = Book::factory()->create([
-            'user_id' => $bookOwner->id,
-        ]);
-
-        $review = $book->reviews()->create([
-            'user_id' => $reviewer->id,
-            'rating' => 5,
-            'comment' => 'メッセージ確認用レビューです。',
-        ]);
-
-        $response = $this
-            ->actingAs($likeUser)
-            ->followingRedirects()
-            ->post(route('reviews.like', $review));
-
-        $response->assertOk();
-        $response->assertSeeText('レビューにいいねしました。');
-
-        $this->assertDatabaseHas('review_likes', [
-            'user_id' => $likeUser->id,
-            'review_id' => $review->id,
-        ]);
-
-        $response = $this
-            ->actingAs($likeUser)
-            ->followingRedirects()
-            ->post(route('reviews.like', $review));
-
-        $response->assertOk();
-        $response->assertSeeText('レビューのいいねを解除しました。');
-
-        $this->assertDatabaseMissing('review_likes', [
-            'user_id' => $likeUser->id,
-            'review_id' => $review->id,
-        ]);
     }
 }

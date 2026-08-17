@@ -86,31 +86,17 @@ class StoreReviewRequestTest extends TestCase
         }
     }
 
-    public function test_評価が1未満の場合はバリデーションエラーになる(): void
+    public function test_レビューが文字列でない場合はバリデーションエラーになる(): void
     {
         $validator = $this->makeValidator(
             $this->validData([
-                'rating' => 0,
+                'comment' => ['配列のレビュー'],
             ])
         );
 
         $this->assertTrue($validator->fails());
         $this->assertTrue(
-            $validator->errors()->has('rating')
-        );
-    }
-
-    public function test_評価が5より大きい場合はバリデーションエラーになる(): void
-    {
-        $validator = $this->makeValidator(
-            $this->validData([
-                'rating' => 6,
-            ])
-        );
-
-        $this->assertTrue($validator->fails());
-        $this->assertTrue(
-            $validator->errors()->has('rating')
+            $validator->errors()->has('comment')
         );
     }
 
@@ -125,6 +111,20 @@ class StoreReviewRequestTest extends TestCase
         $this->assertFalse($validator->fails());
     }
 
+    public function test_評価が1未満の場合はバリデーションエラーになる(): void
+    {
+        $validator = $this->makeValidator(
+            $this->validData([
+                'rating' => 0,
+            ])
+        );
+
+        $this->assertTrue($validator->fails());
+        $this->assertTrue(
+            $validator->errors()->has('rating')
+        );
+    }
+
     public function test_評価が5の場合はバリデーションを通過する(): void
     {
         $validator = $this->makeValidator(
@@ -136,17 +136,17 @@ class StoreReviewRequestTest extends TestCase
         $this->assertFalse($validator->fails());
     }
 
-    public function test_レビューが文字列でない場合はバリデーションエラーになる(): void
+    public function test_評価が5より大きい場合はバリデーションエラーになる(): void
     {
         $validator = $this->makeValidator(
             $this->validData([
-                'comment' => ['配列のレビュー'],
+                'rating' => 6,
             ])
         );
 
         $this->assertTrue($validator->fails());
         $this->assertTrue(
-            $validator->errors()->has('comment')
+            $validator->errors()->has('rating')
         );
     }
 

@@ -9,7 +9,9 @@ use App\Http\Requests\Api\V1\UpdateBookRequest;
 use App\Http\Resources\Api\V1\BookIndexResource;
 use App\Http\Resources\Api\V1\BookShowResource;
 use App\Http\Resources\Api\V1\BookStoreUpdateResource;
+use App\Http\Resources\Api\V1\GenreResource;
 use App\Models\Book;
+use App\Models\Genre;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Support\Facades\DB;
@@ -21,16 +23,65 @@ class BookController extends Controller
      */
     public function index(IndexBookRequest $request): AnonymousResourceCollection
     {
+        $query = Book::query()
+            ->with('genres')
+            ->withAvg('reviews', 'rating')
+            ->withCount('reviews');
+
         $validated = $request->validated();
+
+        // タイトル・著者名検索
+        if (! empty($validated['keyword'])) {
+            $keyword = $validated['keyword'];
+
+            $query->where(function ($query) use ($keyword) {
+                $query->where('title', 'like', '%'.$keyword.'%')
+                    ->orWhere('author', 'like', '%'.$keyword.'%')
+                    ->orWhereRaw('CONCAT(title, author) LIKE ?', ['%'.$keyword.'%'])
+                    ->orWhereRaw("CONCAT(title, ' ', author) LIKE ?", ['%'.$keyword.'%'])
+                    ->orWhereRaw("CONCAT(title, '　', author) LIKE ?", ['%'.$keyword.'%'])
+                    ->orWhereRaw('CONCAT(author, title) LIKE ?', ['%'.$keyword.'%'])
+                    ->orWhereRaw("CONCAT(author, ' ', title) LIKE ?", ['%'.$keyword.'%'])
+                    ->orWhereRaw("CONCAT(author, '　', title) LIKE ?", ['%'.$keyword.'%']);
+            });
+        }
+
+        // ジャンルフィルタ
+        if (! empty($validated['genre'])) {
+            $genreId = $validated['genre'];
+
+            $query->whereHas('genres', function ($query) use ($genreId) {
+                $query->where('genres.id', $genreId);
+            });
+        }
+
+        // ソート
+        $sort = $validated['sort'] ?? 'newest';
+
+        if ($sort === 'title') {
+            $query->orderBy('title', 'asc');
+        } elseif ($sort === 'rating') {
+            $query->orderByRaw('reviews_avg_rating IS NULL ASC')
+                ->orderByDesc('reviews_avg_rating')
+                ->orderByDesc('created_at');
+        } elseif ($sort === 'oldest') {
+            $query->orderBy('created_at', 'asc');
+        } else {
+            $query->orderBy('created_at', 'desc');
+        }
+
         $perPage = $validated['per_page'] ?? 20;
 
-        $books = Book::query()
-            ->with(['genres:id,name'])
-            ->withAvg('reviews', 'rating')
+        $books = $query
             ->paginate($perPage)
             ->withQueryString();
 
-        return BookIndexResource::collection($books);
+        $genres = Genre::orderBy('name')->get();
+
+        return BookIndexResource::collection($books)
+            ->additional([
+                'genres' => GenreResource::collection($genres),
+            ]);
     }
 
     /**
@@ -66,7 +117,12 @@ class BookController extends Controller
     {
         $book->load([
             'genres:id,name',
-            'reviews.user:id,name',
+            'reviews' => function ($query) {
+                $query->with('user:id,name');
+                $query->withCount([
+                    'likedByUsers as likes_count',
+                ]);
+            },
         ]);
 
         return new BookShowResource($book);
