@@ -71,15 +71,15 @@
                                 @foreach ($stats['top_rated_books'] as $index => $book)
                                     @php
                                         $rankColors = [
-                                            0 => 'bg-yellow-400 text-white',
-                                            1 => 'bg-gray-400 text-white',
-                                            2 => 'bg-amber-600 text-white',
+                                            1 => 'bg-yellow-400 text-white',
+                                            2 => 'bg-gray-400 text-white',
+                                            3=> 'bg-amber-600 text-white',
                                         ];
-                                        $rankColor = $rankColors[$index] ?? 'bg-gray-200 text-gray-600';
+                                        $rankColor = $rankColors[$book['rank']] ?? 'bg-gray-200 text-gray-600';
                                     @endphp
                                     <a href="{{ route('books.show', $book['id']) }}" class="flex items-center p-3 border rounded-lg hover:shadow-md transition">
                                         <div class="flex-shrink-0 w-8 h-8 flex items-center justify-center rounded-full {{ $rankColor }} font-bold text-sm">
-                                            {{ $index + 1 }}
+                                            {{ $book['rank'] }}
                                         </div>
                                         <div class="flex-grow min-w-0 ml-3">
                                             <div class="font-medium text-gray-900 truncate">{{ $book['title'] }}</div>
@@ -108,15 +108,15 @@
                             @foreach ($stats['genre_ratings'] as $index => $genre)
                                 @php
                                     $rankColors = [
-                                        0 => 'bg-yellow-400 text-white',
-                                        1 => 'bg-gray-400 text-white',
-                                        2 => 'bg-amber-600 text-white',
+                                        1 => 'bg-yellow-400 text-white',
+                                        2 => 'bg-gray-400 text-white',
+                                        3 => 'bg-amber-600 text-white',
                                     ];
-                                    $rankColor = $rankColors[$index] ?? 'bg-gray-200 text-gray-600';
+                                    $rankColor = $rankColors[$genre['rank']] ?? 'bg-gray-200 text-gray-600';
                                 @endphp
                                 <a href="{{ route('genres.show', $genre['id']) }}" class="flex items-center p-4 border rounded-lg hover:shadow-md transition">
                                     <div class="flex-shrink-0 w-8 h-8 flex items-center justify-center rounded-full {{ $rankColor }} font-bold text-sm">
-                                        {{ $index + 1 }}
+                                        {{ $genre['rank'] }}
                                     </div>
                                     <div class="flex-grow ml-3">
                                         <div class="font-medium text-gray-900">{{ $genre['name'] }}</div>

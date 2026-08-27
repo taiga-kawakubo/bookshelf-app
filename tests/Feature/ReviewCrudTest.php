@@ -468,26 +468,22 @@ class ReviewCrudTest extends TestCase
             'user_id' => $bookOwner->id,
         ]);
 
-        // 削除対象のレビュー
         $review = $book->reviews()->create([
             'user_id' => $reviewer->id,
             'rating' => 5,
             'comment' => '削除対象レビューです。',
         ]);
 
-        // 削除対象ではないレビュー
         $otherReview = $book->reviews()->create([
             'user_id' => $otherReviewer->id,
             'rating' => 4,
             'comment' => '削除対象ではないレビューです。',
         ]);
 
-        // 削除対象レビューへのいいね
         $likeUser
             ->likedReviews()
             ->attach($review->id);
 
-        // 削除対象ではないレビューへのいいね
         $otherLikeUser
             ->likedReviews()
             ->attach($otherReview->id);
@@ -505,17 +501,14 @@ class ReviewCrudTest extends TestCase
             'レビューを削除しました。'
         );
 
-        // 削除対象のレビューが削除されている。
         $this->assertDatabaseMissing('reviews', [
             'id' => $review->id,
         ]);
 
-        // 削除対象レビューへのいいねが削除されている。
         $this->assertDatabaseMissing('review_likes', [
             'review_id' => $review->id,
         ]);
 
-        // 削除対象ではないレビューは残っている。
         $this->assertDatabaseHas('reviews', [
             'id' => $otherReview->id,
             'book_id' => $book->id,
@@ -524,17 +517,14 @@ class ReviewCrudTest extends TestCase
             'comment' => '削除対象ではないレビューです。',
         ]);
 
-        // 削除対象ではないレビューへのいいねは残っている。
         $this->assertDatabaseHas('review_likes', [
             'user_id' => $otherLikeUser->id,
             'review_id' => $otherReview->id,
         ]);
 
-        // 対象外の1件だけが残っている。
         $this->assertDatabaseCount('reviews', 1);
         $this->assertDatabaseCount('review_likes', 1);
 
-        // レビューを削除しても書籍本体は残っている。
         $this->assertDatabaseHas('books', [
             'id' => $book->id,
         ]);

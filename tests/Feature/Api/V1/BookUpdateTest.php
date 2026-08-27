@@ -171,7 +171,7 @@ class BookUpdateTest extends TestCase
         ]);
     }
 
-    public function test_書籍更新は更新対象自身の_isb_nをそのまま使用できる(): void
+    public function test_書籍更新は更新対象自身の_isbnをそのまま使用できる(): void
     {
         $this->authenticateBookOwner();
 
@@ -222,24 +222,33 @@ class BookUpdateTest extends TestCase
         $this->authenticateBookOwner();
 
         $payload = $this->validData([
-            'isbn' => '5234567890126',
+            'title' => 'テスト書籍',
         ]);
 
-        unset($payload['description'], $payload['image_url']);
+        unset($payload['isbn'], $payload['published_date'], $payload['description'], $payload['image_url']);
 
         $response = $this->putJson(route('api.v1.books.update', $this->book), $payload);
 
         $response->assertOk();
 
+        $response->assertJsonPath('data.isbn', '5234567890123');
+        $response->assertJsonPath('data.published_date', '2026-04-01');
         $response->assertJsonPath('data.description', '更新前の説明文です。');
         $response->assertJsonPath('data.image_url', 'https://example.com/before-book.jpg');
 
         $this->assertDatabaseHas('books', [
             'id' => $this->book->id,
-            'isbn' => '5234567890126',
+            'isbn' => '5234567890123',
             'description' => '更新前の説明文です。',
             'image_url' => 'https://example.com/before-book.jpg',
         ]);
+
+        $this->book->refresh();
+
+        $this->assertSame(
+            '2026-04-01',
+            $this->book->published_date->toDateString()
+        );
 
         $this->assertDatabaseHas('book_genre', [
             'book_id' => $this->book->id,
@@ -332,7 +341,7 @@ class BookUpdateTest extends TestCase
         $this->assertDatabaseCount('book_genre', 1);
     }
 
-    public function test_別の書籍が使用している_isb_nには更新できない(): void
+    public function test_別の書籍が使用しているisbnには更新できない(): void
     {
         $this->authenticateBookOwner();
 

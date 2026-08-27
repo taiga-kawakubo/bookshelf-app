@@ -181,10 +181,10 @@ class BookStoreTest extends TestCase
         $this->authenticateBookOwner();
 
         $payload = $this->validData([
-            'isbn' => '4234567890125',
+            'title' => 'テスト書籍',
         ]);
 
-        unset($payload['description'], $payload['image_url']);
+        unset($payload['isbn'], $payload['published_date'], $payload['description'], $payload['image_url']);
 
         $response = $this->postJson(route('api.v1.books.store'), $payload);
 
@@ -192,13 +192,16 @@ class BookStoreTest extends TestCase
 
         $bookId = $response->json('data.id');
 
+        $response->assertJsonPath('data.isbn', null);
+        $response->assertJsonPath('data.published_date', null);
         $response->assertJsonPath('data.description', null);
         $response->assertJsonPath('data.image_url', null);
 
         $this->assertDatabaseHas('books', [
             'id' => $bookId,
             'user_id' => $this->bookOwner->id,
-            'isbn' => '4234567890125',
+            'isbn' => null,
+            'published_date' => null,
             'description' => null,
             'image_url' => null,
         ]);
@@ -209,7 +212,7 @@ class BookStoreTest extends TestCase
         ]);
     }
 
-    public function test_リクエストのuser_idではなく認証ユーザーの_i_dで書籍登録する(): void
+    public function test_リクエストのuser_idではなく認証ユーザーの_idで書籍登録する(): void
     {
         $anotherUser = User::factory()->create();
         $this->authenticateBookOwner();
@@ -275,7 +278,7 @@ class BookStoreTest extends TestCase
         $this->assertDatabaseCount('book_genre', 0);
     }
 
-    public function test_登録済みisbnでは書籍登録できない(): void
+    public function test_登録済み_isbnでは書籍登録できない(): void
     {
         $this->authenticateBookOwner();
 

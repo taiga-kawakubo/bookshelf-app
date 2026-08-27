@@ -11,6 +11,8 @@ class IndexReadingPlanRequest extends FormRequest
 {
     /**
      * このリクエストを実行できるか判定する
+     *
+     * @return bool 常に許可
      */
     public function authorize(): bool
     {

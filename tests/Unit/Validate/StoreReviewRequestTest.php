@@ -45,45 +45,47 @@ class StoreReviewRequestTest extends TestCase
 
     public function test_必須項目が送信されていない場合はバリデーションエラーになる(): void
     {
-        $requiredFields = [
+        $requiredFields = collect([
             'rating',
             'comment',
-        ];
+        ]);
 
-        foreach ($requiredFields as $field) {
-            $data = $this->validData();
+        $requiredFields
+            ->each(function (string $field): void {
+                $data = $this->validData();
 
-            unset($data[$field]);
+                unset($data[$field]);
 
-            $validator = $this->makeValidator($data);
+                $validator = $this->makeValidator($data);
 
-            $this->assertTrue($validator->fails());
-            $this->assertTrue(
-                $validator->errors()->has($field)
-            );
-        }
+                $this->assertTrue($validator->fails());
+                $this->assertTrue(
+                    $validator->errors()->has($field)
+                );
+            });
     }
 
     public function test_評価が整数でない場合はバリデーションエラーになる(): void
     {
-        $invalidRatings = [
+        $invalidRatings = collect([
             3.5,
             '評価なし',
             [3],
-        ];
+        ]);
 
-        foreach ($invalidRatings as $rating) {
-            $validator = $this->makeValidator(
-                $this->validData([
-                    'rating' => $rating,
-                ])
-            );
+        $invalidRatings
+            ->each(function ($rating): void {
+                $validator = $this->makeValidator(
+                    $this->validData([
+                        'rating' => $rating,
+                    ])
+                );
 
-            $this->assertTrue($validator->fails());
-            $this->assertTrue(
-                $validator->errors()->has('rating')
-            );
-        }
+                $this->assertTrue($validator->fails());
+                $this->assertTrue(
+                    $validator->errors()->has('rating')
+                );
+            });
     }
 
     public function test_レビューが文字列でない場合はバリデーションエラーになる(): void

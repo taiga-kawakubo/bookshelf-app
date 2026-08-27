@@ -303,6 +303,62 @@ class ReadingPlanReminderNotificationTest extends TestCase
         $this->travelBack();
     }
 
+    public function test_送信された通知がnotificationsテーブルに保存される(): void
+    {
+        $this->travelTo(today());
+
+        $user = User::factory()->create();
+
+        $book = Book::factory()->create([
+            'title' => 'DB保存確認用の書籍',
+        ]);
+
+        $readingPlan = ReadingPlan::create([
+            'user_id' => $user->id,
+            'book_id' => $book->id,
+            'target_date' => today()->addDays(3)->toDateString(),
+            'status' => ReadingPlanStatus::InProgress,
+        ]);
+
+        $this->artisan('app:send-reading-plan-reminders')
+            ->assertExitCode(0);
+
+        $this->assertDatabaseCount('notifications', 1);
+
+        $notification = $user->notifications()->first();
+
+        $this->assertNotNull($notification);
+        $this->assertSame(
+            ReadingPlanReminderNotification::class,
+            $notification->type
+        );
+        $this->assertNull($notification->read_at);
+
+        $this->assertSame(
+            $readingPlan->id,
+            $notification->data['reading_plan_id']
+        );
+        $this->assertSame($book->id, $notification->data['book_id']);
+        $this->assertSame('DB保存確認用の書籍', $notification->data['book_title']);
+        $this->assertSame('three_days_before', $notification->data['timing']);
+        $this->assertSame(
+            '読書計画の期日が近づいています',
+            $notification->data['title']
+        );
+        $this->assertSame(
+            '「DB保存確認用の書籍」の期日は３日後です。',
+            $notification->data['body']
+        );
+
+        $readingPlan->refresh();
+
+        $this->assertNotNull(
+            $readingPlan->three_days_before_notified_at
+        );
+
+        $this->travelBack();
+    }
+
     public function test_通知済みの場合は再通知されない(): void
     {
         Notification::fake();

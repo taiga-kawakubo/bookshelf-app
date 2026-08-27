@@ -4,7 +4,6 @@ namespace App\Notifications;
 
 use App\Models\ReadingPlan;
 use Illuminate\Bus\Queueable;
-use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
 class ReadingPlanReminderNotification extends Notification
@@ -15,6 +14,12 @@ class ReadingPlanReminderNotification extends Notification
 
     private string $timing;
 
+    /**
+     * 通知対象の読書計画と通知タイミングを受け取る
+     *
+     * @param  ReadingPlan  $readingPlan  通知対象の読書計画
+     * @param  string  $timing  通知タイミング
+     */
     public function __construct(ReadingPlan $readingPlan, string $timing)
     {
         $this->readingPlan = $readingPlan;
@@ -24,6 +29,7 @@ class ReadingPlanReminderNotification extends Notification
     /**
      * 通知の送信チャンネル
      *
+     * @param  object  $notifiable  通知を受け取る対象
      * @return array<int, string>
      */
     public function via(object $notifiable): array
@@ -32,20 +38,10 @@ class ReadingPlanReminderNotification extends Notification
     }
 
     /**
-     * 使用するメールの内容
-     */
-    public function toMail(object $notifiable): MailMessage
-    {
-        return (new MailMessage)
-            ->line('The introduction to the notification.')
-            ->action('Notification Action', url('/'))
-            ->line('Thank you for using our application!');
-    }
-
-    /**
-     * 通知の内容
+     * データベースに保存する通知内容を返す
      *
-     * @return array<string, mixed>
+     * @param  object  $notifiable  通知を受け取る対象
+     * @return array<string, mixed> 通知データ
      */
     public function toDatabase(object $notifiable): array
     {
@@ -60,6 +56,11 @@ class ReadingPlanReminderNotification extends Notification
         ];
     }
 
+    /**
+     * 通知タイミングに応じた通知タイトルを返す
+     *
+     * @return string 通知タイトル
+     */
     private function title(): string
     {
         return match ($this->timing) {
@@ -70,6 +71,11 @@ class ReadingPlanReminderNotification extends Notification
         };
     }
 
+    /**
+     * 通知タイミングに応じた通知本文を返す
+     *
+     * @return string 通知本文
+     */
     private function body(): string
     {
         return match ($this->timing) {

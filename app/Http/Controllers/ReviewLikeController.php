@@ -9,7 +9,11 @@ use Illuminate\Http\Request;
 class ReviewLikeController extends Controller
 {
     /**
-     * レビューの「いいね」登録・解除
+     * ログインユーザーのレビューいいね状態を登録または解除する
+     *
+     * @param  Request  $request  いいね操作を行うリクエスト
+     * @param  Review  $review  いいね対象のレビュー
+     * @return RedirectResponse 書籍詳細画面へのリダイレクト
      */
     public function toggle(Request $request, Review $review): RedirectResponse
     {

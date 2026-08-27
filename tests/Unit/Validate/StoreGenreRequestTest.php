@@ -62,23 +62,24 @@ class StoreGenreRequestTest extends TestCase
 
     public function test_ジャンル名が文字列でない場合はバリデーションエラーになる(): void
     {
-        $invalidNames = [
+        $invalidNames = collect([
             ['ミステリー'],
             123,
-        ];
+        ]);
 
-        foreach ($invalidNames as $name) {
-            $validator = $this->makeValidator(
-                $this->validData([
-                    'name' => $name,
-                ])
-            );
+        $invalidNames
+            ->each(function ($name): void {
+                $validator = $this->makeValidator(
+                    $this->validData([
+                        'name' => $name,
+                    ])
+                );
 
-            $this->assertTrue($validator->fails());
-            $this->assertTrue(
-                $validator->errors()->has('name')
-            );
-        }
+                $this->assertTrue($validator->fails());
+                $this->assertTrue(
+                    $validator->errors()->has('name')
+                );
+            });
     }
 
     public function test_登録済みのジャンル名の場合はバリデーションエラーになる(): void

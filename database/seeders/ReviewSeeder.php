@@ -44,7 +44,7 @@ class ReviewSeeder extends Seeder
             'takahashi@example.com',
         ];
 
-        // 各書籍2〜4件、合計32件
+        // 各書籍2〜4件
         $reviewCountByIsbn = [
             '9784101010014' => 2,
             '9784422100524' => 3,
@@ -82,7 +82,6 @@ class ReviewSeeder extends Seeder
         ): void {
             $reviewCount = $reviewCountByIsbn[$book->isbn];
 
-            // 同じ書籍に同じユーザーを重複して割り当てない
             $reviewers = $faker->randomElements(
                 $users->all(),
                 $reviewCount,

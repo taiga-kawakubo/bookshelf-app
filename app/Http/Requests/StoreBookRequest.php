@@ -9,6 +9,8 @@ class StoreBookRequest extends FormRequest
 {
     /**
      * このリクエストを実行できるか判定する
+     *
+     * @return bool 常に許可
      */
     public function authorize(): bool
     {
@@ -25,8 +27,8 @@ class StoreBookRequest extends FormRequest
         return [
             'title' => ['required', 'string', 'max:255'],
             'author' => ['required', 'string', 'max:255'],
-            'isbn' => ['required', 'digits:13', 'unique:books,isbn'],
-            'published_date' => ['required', 'date'],
+            'isbn' => ['nullable', 'digits:13', 'unique:books,isbn'],
+            'published_date' => ['nullable', 'date'],
             'description' => ['nullable', 'string', 'max:2000'],
             'image_url' => ['nullable', 'string', 'url', 'max:512'],
             'genres' => ['required', 'array', 'min:1'],
@@ -50,11 +52,9 @@ class StoreBookRequest extends FormRequest
             'author.string' => '著者は文字列で入力してください。',
             'author.max' => '著者は255文字以内で入力してください。',
 
-            'isbn.required' => 'ISBNを入力してください。',
             'isbn.digits' => 'ISBNは13桁で入力してください。',
             'isbn.unique' => '入力されたISBNはすでに使用されています。',
 
-            'published_date.required' => '出版日を入力してください。',
             'published_date.date' => '出版日は有効な日付で入力してください。',
 
             'description.string' => '説明は文字列で入力してください。',

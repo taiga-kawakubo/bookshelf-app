@@ -14,7 +14,10 @@ use Illuminate\View\View;
 class BookController extends Controller
 {
     /**
-     * 書籍一覧の表示
+     * 検索・絞り込み・並び替え条件に応じて書籍一覧を表示する。
+     *
+     * @param  IndexBookRequest  $request  書籍一覧の検索条件
+     * @return View 書籍一覧画面
      */
     public function index(IndexBookRequest $request): View
     {
@@ -72,7 +75,9 @@ class BookController extends Controller
     }
 
     /**
-     * 書籍の作成画面を表示
+     * 書籍作成画面を表示する。
+     *
+     * @return View 書籍作成画面
      */
     public function create(): View
     {
@@ -82,7 +87,10 @@ class BookController extends Controller
     }
 
     /**
-     * 書籍の登録
+     * ログインユーザーを登録者として書籍を登録する。
+     *
+     * @param  StoreBookRequest  $request  書籍登録リクエスト
+     * @return RedirectResponse 書籍一覧画面へのリダイレクト
      */
     public function store(StoreBookRequest $request): RedirectResponse
     {
@@ -93,8 +101,8 @@ class BookController extends Controller
                 'user_id' => $request->user()->id,
                 'title' => $validated['title'],
                 'author' => $validated['author'],
-                'isbn' => $validated['isbn'],
-                'published_date' => $validated['published_date'],
+                'isbn' => $validated['isbn'] ?? null,
+                'published_date' => $validated['published_date'] ?? null,
                 'description' => $validated['description'] ?? null,
                 'image_url' => $validated['image_url'] ?? null,
             ]);
@@ -108,21 +116,32 @@ class BookController extends Controller
     }
 
     /**
-     * 書籍詳細の表示
+     * 指定された書籍の詳細画面を表示する。
+     *
+     * @param  Book  $book  表示対象の書籍
+     * @return View 書籍詳細画面
      */
     public function show(Book $book): View
     {
-        $book->load([
-            'genres',
-            'reviews.user',
-            'reviews.likedByUsers',
-        ]);
+        $book->load(['genres']);
 
-        return view('books.show', compact('book'));
+        $reviews = $book->reviews()
+            ->with([
+                'user',
+                'likedByUsers',
+            ])
+            ->latest()
+            ->paginate(10, ['*'], 'review_page')
+            ->withQueryString();
+
+        return view('books.show', compact('book', 'reviews'));
     }
 
     /**
-     * 書籍の編集画面を表示
+     * 指定された書籍の編集画面を表示する。
+     *
+     * @param  Book  $book  編集対象の書籍
+     * @return View 書籍編集画面
      */
     public function edit(Book $book): View
     {
@@ -134,7 +153,11 @@ class BookController extends Controller
     }
 
     /**
-     * 書籍の更新
+     * 指定された書籍情報とジャンル紐付けを更新する。
+     *
+     * @param  UpdateBookRequest  $request  書籍更新リクエスト
+     * @param  Book  $book  更新対象の書籍
+     * @return RedirectResponse 書籍詳細画面へのリダイレクト
      */
     public function update(UpdateBookRequest $request, Book $book): RedirectResponse
     {
@@ -145,8 +168,8 @@ class BookController extends Controller
             $book->update([
                 'title' => $validated['title'],
                 'author' => $validated['author'],
-                'isbn' => $validated['isbn'],
-                'published_date' => $validated['published_date'],
+                'isbn' => $validated['isbn'] ?? null,
+                'published_date' => $validated['published_date'] ?? null,
                 'description' => $validated['description'] ?? null,
                 'image_url' => $validated['image_url'] ?? null,
             ]);
@@ -160,7 +183,10 @@ class BookController extends Controller
     }
 
     /**
-     * 書籍の削除
+     * 指定された書籍を削除する。
+     *
+     * @param  Book  $book  削除対象の書籍
+     * @return RedirectResponse 書籍一覧画面へのリダイレクト
      */
     public function destroy(Book $book): RedirectResponse
     {

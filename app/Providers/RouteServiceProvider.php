@@ -20,7 +20,7 @@ class RouteServiceProvider extends ServiceProvider
     public const HOME = '/books';
 
     /**
-     * ルートモデルバインディング、パターンフィルター、その他のルート設定を定義する。
+     *  APIのレート制限を定義し、APIルートとWebルートを登録する。
      */
     public function boot(): void
     {

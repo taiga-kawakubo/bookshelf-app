@@ -15,7 +15,10 @@ use Illuminate\View\View;
 class ReadingPlanController extends Controller
 {
     /**
-     * 読書計画一覧の表示
+     * ログインユーザーの読書計画一覧をステータス条件に応じて表示する。
+     *
+     * @param  IndexReadingPlanRequest  $request  読書計画一覧の絞り込み条件
+     * @return View 読書計画一覧画面
      */
     public function index(IndexReadingPlanRequest $request): View
     {
@@ -31,13 +34,16 @@ class ReadingPlanController extends Controller
                 $query->where('status', $currentStatus);
             })
             ->latest()
-            ->get();
+            ->paginate(10)
+            ->withQueryString();
 
         return view('reading-plans.index', compact('readingPlans', 'currentStatus'));
     }
 
     /**
-     * 読書登録画面を表示
+     * 読書計画作成画面を表示する。
+     *
+     * @return View 読書計画作成画面
      */
     public function create(): View
     {
@@ -47,16 +53,26 @@ class ReadingPlanController extends Controller
     }
 
     /**
-     * 読書計画の登録
+     * ログインユーザーの読書計画を登録する。
+     *
+     * @param  StoreReadingPlanRequest  $request  読書計画登録リクエスト
+     * @return RedirectResponse 読書計画一覧画面へのリダイレクト
      */
     public function store(StoreReadingPlanRequest $request): RedirectResponse
     {
         $validated = $request->validated();
+
+        $targetDate = Carbon::parse($validated['target_date']);
+
+        $status = $targetDate->isBefore(today())
+            ? ReadingPlanStatus::Overdue
+            : ReadingPlanStatus::InProgress;
+
         ReadingPlan::create([
             'user_id' => $request->user()->id,
             'book_id' => $validated['book_id'],
             'target_date' => $validated['target_date'],
-            'status' => ReadingPlanStatus::InProgress,
+            'status' => $status,
         ]);
 
         return redirect()
@@ -65,7 +81,10 @@ class ReadingPlanController extends Controller
     }
 
     /**
-     * 読書編集画面を表示
+     * 指定された読書計画の編集画面を表示する。
+     *
+     * @param  ReadingPlan  $plan  編集対象の読書計画
+     * @return View 読書計画編集画面
      */
     public function edit(ReadingPlan $plan): View
     {
@@ -79,7 +98,11 @@ class ReadingPlanController extends Controller
     }
 
     /**
-     * 読書計画を更新
+     * 指定された読書計画の期日を更新し、必要に応じて通知履歴と状態を再設定する。
+     *
+     * @param  UpdateReadingPlanRequest  $request  読書計画更新リクエスト
+     * @param  ReadingPlan  $plan  更新対象の読書計画
+     * @return RedirectResponse 読書計画一覧画面へのリダイレクト
      */
     public function update(UpdateReadingPlanRequest $request, ReadingPlan $plan): RedirectResponse
     {
@@ -121,7 +144,10 @@ class ReadingPlanController extends Controller
     }
 
     /**
-     * 読書計画を削除
+     * 指定された読書計画を削除する。
+     *
+     * @param  ReadingPlan  $plan  削除対象の読書計画
+     * @return RedirectResponse 読書計画一覧画面へのリダイレクト
      */
     public function destroy(ReadingPlan $plan): RedirectResponse
     {
@@ -134,7 +160,10 @@ class ReadingPlanController extends Controller
     }
 
     /**
-     *「 読了ボタン」を押す
+     * 指定された読書計画を読了状態に変更する。
+     *
+     * @param  ReadingPlan  $plan  読了にする読書計画
+     * @return RedirectResponse 読書計画一覧画面へのリダイレクト
      */
     public function complete(ReadingPlan $plan): RedirectResponse
     {

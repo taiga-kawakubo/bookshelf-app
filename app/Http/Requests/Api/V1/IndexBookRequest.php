@@ -2,16 +2,27 @@
 
 namespace App\Http\Requests\Api\V1;
 
+use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
 class IndexBookRequest extends FormRequest
 {
+    /**
+     * 書籍一覧APIのリクエストを許可する。
+     *
+     * @return bool 常に許可
+     */
     public function authorize(): bool
     {
         return true;
     }
 
+    /**
+     * 書籍一覧APIの検索・絞り込み・並び替え条件のバリデーションルールを返す
+     *
+     * @return array<string, ValidationRule|array<mixed>|string>
+     */
     public function rules(): array
     {
         return [
@@ -28,6 +39,11 @@ class IndexBookRequest extends FormRequest
         ];
     }
 
+    /**
+     * 書籍一覧APIのバリデーションエラーメッセージを返す
+     *
+     * @return array<string, string>
+     */
     public function messages(): array
     {
         return [

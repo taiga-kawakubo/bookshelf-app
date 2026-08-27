@@ -7,6 +7,11 @@ use Illuminate\View\View;
 
 class ReportController extends Controller
 {
+    /**
+     * ログインユーザーの読書データを集計し、マイ読書レポート画面を表示する。
+     *
+     * @return View マイ読書レポート画面
+     */
     public function index(): View
     {
         // 基本サマリー
@@ -38,6 +43,9 @@ class ReportController extends Controller
         });
 
         // 高評価書籍TOP5
+        $previousAverageRating = null;
+        $currentRank = 0;
+
         $topRatedBooks = $user->books()
             ->withAvg('reviews', 'rating')
             ->withCount('reviews')
@@ -47,20 +55,34 @@ class ReportController extends Controller
             ->orderBy('title')
             ->get()
             ->filter(function ($book) {
-                return round($book->reviews_avg_rating ?? 0) >= 4;
+                $averageRating = (float) ($book->reviews_avg_rating ?? 0);
+
+                return $averageRating >= 4.0;
             })
             ->take(5)
-            ->map(function ($book) {
+            ->values()
+            ->map(function ($book, int $index) use (&$previousAverageRating, &$currentRank) {
+                $averageRating = (float) $book->reviews_avg_rating;
+
+                if ($averageRating !== $previousAverageRating) {
+                    $currentRank++;
+                }
+
+                $previousAverageRating = $averageRating;
+
                 return [
                     'id' => $book->id,
                     'title' => $book->title,
                     'author' => $book->author,
-                    // 星表示用に整数化
-                    'rating' => round($book->reviews_avg_rating ?? 0),
+                    'rating' => round($averageRating),
+                    'rank' => $currentRank,
                 ];
             });
 
         // ジャンル別評価傾向TOP５
+        $previousAverageRating = null;
+        $currentRank = 0;
+
         $reviews = $user->reviews()
             ->with('book.genres')
             ->get();
@@ -106,12 +128,21 @@ class ReportController extends Controller
             })
             ->take(5)
             ->values()
-            ->map(function ($genre) {
+            ->map(function ($genre, int $index) use (&$previousAverageRating, &$currentRank) {
+                $averageRating = (float) $genre['average_rating'];
+
+                if ($averageRating !== $previousAverageRating) {
+                    $currentRank++;
+                }
+
+                $previousAverageRating = $averageRating;
+
                 return [
                     'id' => $genre['id'],
                     'name' => $genre['name'],
                     'count' => $genre['count'],
-                    'average_rating' => round($genre['average_rating'] ?? 0, 1),
+                    'average_rating' => round($averageRating, 1),
+                    'rank' => $currentRank,
                 ];
             });
 

@@ -70,7 +70,7 @@ Laravel 10を使用して開発した本レビューアプリです。
 
 # ER図
 
-- [ER図](docs/er.drawio)
+-![ER図](docs/er.png)
 
 ## リレーション
 
@@ -155,7 +155,6 @@ Authorization: Bearer {token}
 - [Route設計書](docs/route-design.md)
 - [ER図](docs/er.drawio)
 - [画面遷移図](docs/screen-flow.drawio)
-- [仕様書](https://docs.google.com/spreadsheets/d/1eBRlpMqJ9hfwdL-Bt2uhzzO1eXPC7TUDBoYPVkZhb9M/edit?usp=sharing)
 
 ---
 
@@ -193,6 +192,7 @@ ISBN検索機能でGoogle Books APIを利用します。必要に応じて、`.e
 
 ```env
 GOOGLE_BOOKS_API_KEY=
+GOOGLE_BOOKS_API_URL=https://www.googleapis.com/books/v1/volumes
 ```
 
 ## Composer依存関係をインストール
@@ -284,7 +284,7 @@ sail npm run dev
 ## アプリケーション
 
 ```text
-http://localhost
+http://localhost/books
 ```
 
 ## phpMyAdmin
@@ -320,7 +320,7 @@ http://localhost:8080
 | コマンド | 実行タイミング | 内容 |
 |---|---|---|
 | app:update-overdue-reading-plans | 毎日0:00 | 期日を過ぎた進行中の読書計画を期限超過に更新 |
-| app:send-reading-plan-reminders | 毎日8:00 | 読書計画の期日に応じた通知を作成 |
+| app:send-reading-plan-reminders | 毎日20:00 | 読書計画の期日に応じた通知を作成 |
 
 手動で確認する場合は、以下のコマンドを使用します。
 
@@ -382,17 +382,7 @@ Sailのエイリアスを設定していない場合は、以下のコマンド�
 ./vendor/bin/sail artisan test --coverage
 ```
 
-HTML形式で出力する場合は、以下を実行します。
 
-```bash
-sail artisan test --coverage-html coverage
-```
-
-Sailのエイリアスを設定していない場合は、以下のコマンドを使用してください。
-
-```bash
-./vendor/bin/sail artisan test --coverage-html coverage
-```
 
 本アプリケーションでは、Controller・FormRequest・Resource・Modelを中心にテストを作成しています。
 
@@ -425,25 +415,25 @@ Sailのエイリアスを設定していない場合は、以下のコマンド�
 Laravel Pintによるコード整形は以下のコマンドで実行できます。
 
 ```bash
-sail bin pint
+sail pint
 ```
 
 Sailのエイリアスを設定していない場合は、以下のコマンドを使用してください。
 
 ```bash
-./vendor/bin/sail bin pint
+./vendor/bin/sail pint
 ```
 
 整形が必要なファイルがないか確認する場合は、以下を実行します。
 
 ```bash
-sail bin pint --test
+sail pint --test
 ```
 
 Sailのエイリアスを設定していない場合は、以下のコマンドを使用してください。
 
 ```bash
-./vendor/bin/sail bin pint --test
+./vendor/bin/sail pint --test
 ```
 
 ---
