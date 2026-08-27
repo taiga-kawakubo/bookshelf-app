@@ -12,7 +12,11 @@ use Illuminate\View\View;
 class ReviewController extends Controller
 {
     /**
-     * レビューの登録
+     * 指定された書籍にログインユーザーのレビューを登録する
+     *
+     * @param  StoreReviewRequest  $request  レビュー登録リクエスト
+     * @param  Book  $book  レビュー対象の書籍
+     * @return RedirectResponse 書籍詳細画面へのリダイレクト
      */
     public function store(StoreReviewRequest $request, Book $book): RedirectResponse
     {
@@ -44,7 +48,10 @@ class ReviewController extends Controller
     }
 
     /**
-     * レビューの編集画面を表示
+     * 指定されたレビューの編集画面を表示する
+     *
+     * @param  Review  $review  編集対象のレビュー
+     * @return View レビュー編集画面
      */
     public function edit(Review $review): View
     {
@@ -54,7 +61,11 @@ class ReviewController extends Controller
     }
 
     /**
-     * レビューの更新
+     * 指定されたレビューの評価とコメントを更新する
+     *
+     * @param  UpdateReviewRequest  $request  レビュー更新リクエスト
+     * @param  Review  $review  更新対象のレビュー
+     * @return RedirectResponse 書籍詳細画面へのリダイレクト
      */
     public function update(UpdateReviewRequest $request, Review $review): RedirectResponse
     {
@@ -72,7 +83,10 @@ class ReviewController extends Controller
     }
 
     /**
-     * レビューの削除
+     * 指定されたレビューを削除する
+     *
+     * @param  Review  $review  削除対象のレビュー
+     * @return RedirectResponse 書籍詳細画面へのリダイレクト
      */
     public function destroy(Review $review): RedirectResponse
     {

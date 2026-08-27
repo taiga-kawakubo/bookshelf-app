@@ -148,9 +148,9 @@
                         @endauth
 
                         <!-- レビュー一覧 -->
-                        @if($book->reviews->count() > 0)
+                        @if($reviews->count() > 0)
                             <div class="space-y-4">
-                                @foreach($book->reviews as $review)
+                                @foreach($reviews as $review)
                                     <div class="border rounded-lg p-4">
                                         <div class="flex items-center justify-between mb-2">
                                             <div>
@@ -214,6 +214,10 @@
                                         </div>
                                     </div>
                                 @endforeach
+                            </div>
+
+                            <div class="mt-6">
+                                {{ $reviews->links() }}
                             </div>
                         @else
                             <p class="text-gray-500">まだレビューはありません。</p>

@@ -89,6 +89,81 @@ class GenreCrudTest extends TestCase
         $this->assertGuest();
     }
 
+    public function test_ジャンルが10件の場合は1ページ目に10件すべて表示される(): void
+    {
+        Genre::factory()
+            ->count(10)
+            ->create();
+
+        $response = $this
+            ->actingAs(User::factory()->create())
+            ->get(route('genres.index'));
+
+        $response->assertOk();
+
+        $genres = $response->viewData('genres');
+
+        $this->assertInstanceOf(
+            LengthAwarePaginator::class,
+            $genres
+        );
+
+        $this->assertCount(10, $genres);
+        $this->assertSame(10, $genres->total());
+        $this->assertSame(10, $genres->perPage());
+        $this->assertSame(1, $genres->currentPage());
+        $this->assertSame(1, $genres->lastPage());
+    }
+
+    public function test_ジャンルが11件の場合は10件ごとにページネーションされる(): void
+    {
+        Genre::factory()
+            ->count(11)
+            ->create();
+
+        $user = User::factory()->create();
+
+        $firstPageResponse = $this
+            ->actingAs($user)
+            ->get(route('genres.index'));
+
+        $firstPageResponse->assertOk();
+
+        $firstPageGenres = $firstPageResponse->viewData('genres');
+
+        $this->assertInstanceOf(
+            LengthAwarePaginator::class,
+            $firstPageGenres
+        );
+
+        $this->assertCount(10, $firstPageGenres);
+        $this->assertSame(11, $firstPageGenres->total());
+        $this->assertSame(10, $firstPageGenres->perPage());
+        $this->assertSame(1, $firstPageGenres->currentPage());
+        $this->assertSame(2, $firstPageGenres->lastPage());
+
+        $secondPageResponse = $this
+            ->actingAs($user)
+            ->get(route('genres.index', [
+                'page' => 2,
+            ]));
+
+        $secondPageResponse->assertOk();
+
+        $secondPageGenres = $secondPageResponse->viewData('genres');
+
+        $this->assertInstanceOf(
+            LengthAwarePaginator::class,
+            $secondPageGenres
+        );
+
+        $this->assertCount(1, $secondPageGenres);
+        $this->assertSame(11, $secondPageGenres->total());
+        $this->assertSame(10, $secondPageGenres->perPage());
+        $this->assertSame(2, $secondPageGenres->currentPage());
+        $this->assertSame(2, $secondPageGenres->lastPage());
+    }
+
     /*
     |--------------------------------------------------------------------------
     | ジャンル詳細
@@ -175,9 +250,10 @@ class GenreCrudTest extends TestCase
                 'user_id' => $user->id,
             ]);
 
-        foreach ($createdBooks as $book) {
-            $book->genres()->attach($genre->id);
-        }
+        $createdBooks
+            ->each(function (Book $book) use ($genre): void {
+                $book->genres()->attach($genre->id);
+            });
 
         $response = $this
             ->actingAs($user)
@@ -213,9 +289,10 @@ class GenreCrudTest extends TestCase
                 'user_id' => $user->id,
             ]);
 
-        foreach ($createdBooks as $book) {
-            $book->genres()->attach($genre->id);
-        }
+        $createdBooks
+            ->each(function (Book $book) use ($genre): void {
+                $book->genres()->attach($genre->id);
+            });
 
         $firstPageResponse = $this
             ->actingAs($user)

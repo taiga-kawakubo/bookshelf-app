@@ -8,9 +8,10 @@ use Illuminate\Http\Resources\Json\JsonResource;
 class ReviewResource extends JsonResource
 {
     /**
-     * レビュー情報をAPIレスポンス用の配列に変換する。
+     * レビュー情報をAPIレスポンス用の配列に変換する
      *
-     * @return array<string, mixed>
+     * @param  Request  $request  APIリクエスト
+     * @return array<string, mixed> レビューのレスポンスデータ
      */
     public function toArray(Request $request): array
     {

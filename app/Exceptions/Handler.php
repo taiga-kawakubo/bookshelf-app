@@ -13,6 +13,9 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 class Handler extends ExceptionHandler
 {
+    /**
+     * APIリクエスト向けの例外レスポンスを登録する
+     */
     public function register(): void
     {
         $this->renderable(function (NotFoundHttpException $e, Request $request) {
@@ -39,7 +42,6 @@ class Handler extends ExceptionHandler
         $this->renderable(function (AuthenticationException $e, Request $request) {
             if (! $request->is('api/*')) {
                 return null;
-
             }
 
             return response()->json([
@@ -58,6 +60,13 @@ class Handler extends ExceptionHandler
         });
     }
 
+    /**
+     * バリデーションエラー時のJSONレスポンスを返す
+     *
+     * @param  mixed  $request  バリデーションエラーが発生したリクエスト
+     * @param  ValidationException  $exception  バリデーション例外
+     * @return mixed JSONレスポンスまたは親クラスのレスポンス
+     */
     protected function invalidJson($request, ValidationException $exception)
     {
         if ($request->is('api/*')) {

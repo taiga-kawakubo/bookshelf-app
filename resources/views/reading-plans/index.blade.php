@@ -82,6 +82,9 @@
                                 @endforeach
                             </tbody>
                         </table>
+                        <div class="mt-6">
+                            {{ $readingPlans->links() }}
+                        </div>
                     @endif
                 </div>
             </div>

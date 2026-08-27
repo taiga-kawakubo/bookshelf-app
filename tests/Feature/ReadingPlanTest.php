@@ -7,6 +7,7 @@ use App\Models\Book;
 use App\Models\ReadingPlan;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Tests\TestCase;
 
 class ReadingPlanTest extends TestCase
@@ -141,6 +142,99 @@ class ReadingPlanTest extends TestCase
             ->where('user_id', $user->id)
             ->where('book_id', $book->id)
             ->firstOrFail();
+
+        $this->assertSame(
+            $targetDate,
+            $readingPlan->target_date->toDateString()
+        );
+    }
+
+    public function test_過去日で登録した読書計画は期限超過になる(): void
+    {
+        $user = User::factory()->create();
+        $book = Book::factory()->create();
+        $targetDate = today()->subDay()->toDateString();
+
+        $response = $this
+            ->actingAs($user)
+            ->post(route('reading-plans.store'), [
+                'book_id' => $book->id,
+                'target_date' => $targetDate,
+            ]);
+
+        $response->assertRedirect(route('reading-plans.index'));
+
+        $readingPlan = ReadingPlan::query()
+            ->where('user_id', $user->id)
+            ->where('book_id', $book->id)
+            ->firstOrFail();
+
+        $this->assertSame(
+            ReadingPlanStatus::Overdue,
+            $readingPlan->status
+        );
+
+        $this->assertSame(
+            $targetDate,
+            $readingPlan->target_date->toDateString()
+        );
+    }
+
+    public function test_今日の日付で登録した読書計画は進行中になる(): void
+    {
+        $user = User::factory()->create();
+        $book = Book::factory()->create();
+        $targetDate = today()->toDateString();
+
+        $response = $this
+            ->actingAs($user)
+            ->post(route('reading-plans.store'), [
+                'book_id' => $book->id,
+                'target_date' => $targetDate,
+            ]);
+
+        $response->assertRedirect(route('reading-plans.index'));
+
+        $readingPlan = ReadingPlan::query()
+            ->where('user_id', $user->id)
+            ->where('book_id', $book->id)
+            ->firstOrFail();
+
+        $this->assertSame(
+            ReadingPlanStatus::InProgress,
+            $readingPlan->status
+        );
+
+        $this->assertSame(
+            $targetDate,
+            $readingPlan->target_date->toDateString()
+        );
+    }
+
+    public function test_未来日で登録した読書計画は進行中になる(): void
+    {
+        $user = User::factory()->create();
+        $book = Book::factory()->create();
+        $targetDate = today()->addDay()->toDateString();
+
+        $response = $this
+            ->actingAs($user)
+            ->post(route('reading-plans.store'), [
+                'book_id' => $book->id,
+                'target_date' => $targetDate,
+            ]);
+
+        $response->assertRedirect(route('reading-plans.index'));
+
+        $readingPlan = ReadingPlan::query()
+            ->where('user_id', $user->id)
+            ->where('book_id', $book->id)
+            ->firstOrFail();
+
+        $this->assertSame(
+            ReadingPlanStatus::InProgress,
+            $readingPlan->status
+        );
 
         $this->assertSame(
             $targetDate,
@@ -486,5 +580,90 @@ class ReadingPlanTest extends TestCase
         );
 
         $this->assertNotNull($readingPlan->completed_at);
+    }
+
+    public function test_読書計画が10件の場合は1ページ目に10件すべて表示される(): void
+    {
+        $user = User::factory()->create();
+
+        $books = Book::factory()
+            ->count(10)
+            ->create();
+
+        $books->each(function (Book $book) use ($user): void {
+            $this->createReadingPlan($user, $book);
+        });
+
+        $response = $this
+            ->actingAs($user)
+            ->get(route('reading-plans.index'));
+
+        $response->assertOk();
+
+        $readingPlans = $response->viewData('readingPlans');
+
+        $this->assertInstanceOf(
+            LengthAwarePaginator::class,
+            $readingPlans
+        );
+
+        $this->assertCount(10, $readingPlans);
+        $this->assertSame(10, $readingPlans->total());
+        $this->assertSame(10, $readingPlans->perPage());
+        $this->assertSame(1, $readingPlans->currentPage());
+        $this->assertSame(1, $readingPlans->lastPage());
+    }
+
+    public function test_読書計画が11件の場合は10件ごとにページネーションされる(): void
+    {
+        $user = User::factory()->create();
+
+        $books = Book::factory()
+            ->count(11)
+            ->create();
+
+        $books->each(function (Book $book) use ($user): void {
+            $this->createReadingPlan($user, $book);
+        });
+
+        $firstPageResponse = $this
+            ->actingAs($user)
+            ->get(route('reading-plans.index'));
+
+        $firstPageResponse->assertOk();
+
+        $firstPageReadingPlans = $firstPageResponse->viewData('readingPlans');
+
+        $this->assertInstanceOf(
+            LengthAwarePaginator::class,
+            $firstPageReadingPlans
+        );
+
+        $this->assertCount(10, $firstPageReadingPlans);
+        $this->assertSame(11, $firstPageReadingPlans->total());
+        $this->assertSame(10, $firstPageReadingPlans->perPage());
+        $this->assertSame(1, $firstPageReadingPlans->currentPage());
+        $this->assertSame(2, $firstPageReadingPlans->lastPage());
+
+        $secondPageResponse = $this
+            ->actingAs($user)
+            ->get(route('reading-plans.index', [
+                'page' => 2,
+            ]));
+
+        $secondPageResponse->assertOk();
+
+        $secondPageReadingPlans = $secondPageResponse->viewData('readingPlans');
+
+        $this->assertInstanceOf(
+            LengthAwarePaginator::class,
+            $secondPageReadingPlans
+        );
+
+        $this->assertCount(1, $secondPageReadingPlans);
+        $this->assertSame(11, $secondPageReadingPlans->total());
+        $this->assertSame(10, $secondPageReadingPlans->perPage());
+        $this->assertSame(2, $secondPageReadingPlans->currentPage());
+        $this->assertSame(2, $secondPageReadingPlans->lastPage());
     }
 }

@@ -46,7 +46,7 @@ class IndexBookRequestTest extends TestCase
         );
     }
 
-    public function test_存在するジャンル_i_dではバリデーションを通過する(): void
+    public function test_存在するジャンル_idではバリデーションを通過する(): void
     {
         $genre = Genre::create([
             'name' => '技術書',
@@ -76,22 +76,21 @@ class IndexBookRequestTest extends TestCase
 
     public function test_正しいソートを選択した場合はバリデーションを通過する(): void
     {
-        $validSorts = [
+        $validSorts = collect([
             'newest',
             'oldest',
             'rating',
             'title',
-        ];
+        ]);
 
-        foreach ($validSorts as $sort) {
-            $validator = $this->makeValidator(
-                [
+        $validSorts
+            ->each(function ($sort): void {
+                $validator = $this->makeValidator([
                     'sort' => $sort,
-                ]
-            );
+                ]);
 
-            $this->assertFalse($validator->fails());
-        }
+                $this->assertFalse($validator->fails());
+            });
     }
 
     public function test_正常なページあたりの件数ではバリデーションを通過する(): void
@@ -147,7 +146,7 @@ class IndexBookRequestTest extends TestCase
         );
     }
 
-    public function test_存在しないジャンル_i_dの場合はエラーになる(): void
+    public function test_存在しないジャンル_idの場合はエラーになる(): void
     {
         $validator = $this->makeValidator([
             'genre' => 999999,

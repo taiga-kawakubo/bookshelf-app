@@ -8,7 +8,9 @@ use Illuminate\View\View;
 class RankingController extends Controller
 {
     /**
-     * ランキング画面の表示
+     * レビュー評価に応じた書籍ランキング画面を表示する。
+     *
+     * @return View 書籍ランキング画面
      */
     public function index(): View
     {

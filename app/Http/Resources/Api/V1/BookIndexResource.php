@@ -8,9 +8,10 @@ use Illuminate\Http\Resources\Json\JsonResource;
 class BookIndexResource extends JsonResource
 {
     /**
-     * 書籍情報をAPIレスポンス用の配列に変換する。
+     * 書籍一覧APIで返す書籍情報を配列に変換する
      *
-     * @return array<string, mixed>
+     * @param  Request  $request  APIリクエスト
+     * @return array<string, mixed> 書籍一覧用のレスポンスデータ
      */
     public function toArray(Request $request): array
     {

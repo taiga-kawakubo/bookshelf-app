@@ -125,8 +125,8 @@ class RankingTest extends TestCase
 
         $response->assertOk();
 
-        $response->assertViewHas('rankedBooks',
-            function ($rankedBooks) use ($highBook, $middleBook, $lowBook): bool {
+        $response
+            ->assertViewHas('rankedBooks', function ($rankedBooks) use ($highBook, $middleBook, $lowBook): bool {
                 return $rankedBooks->pluck('id')->all() === [
                     $highBook->id,
                     $middleBook->id,
@@ -365,23 +365,24 @@ class RankingTest extends TestCase
         $response->assertOk();
         $response->assertDontSeeText($eleventhBook->title);
 
-        $response->assertViewHas('rankedBooks', function ($rankedBooks) use ($topBooks, $eleventhBook): bool {
-            $expectedBookIds = $topBooks
-                ->pluck('id')
-                ->sort()
-                ->values()
-                ->all();
+        $response
+            ->assertViewHas('rankedBooks', function ($rankedBooks) use ($topBooks, $eleventhBook): bool {
+                $expectedBookIds = $topBooks
+                    ->pluck('id')
+                    ->sort()
+                    ->values()
+                    ->all();
 
-            $actualBookIds = $rankedBooks
-                ->pluck('id')
-                ->sort()
-                ->values()
-                ->all();
+                $actualBookIds = $rankedBooks
+                    ->pluck('id')
+                    ->sort()
+                    ->values()
+                    ->all();
 
-            return $rankedBooks->count() === 10
-                && $actualBookIds === $expectedBookIds
-                && ! $rankedBooks->contains(fn (Book $book): bool => $book->is($eleventhBook));
-        });
+                return $rankedBooks->count() === 10
+                    && $actualBookIds === $expectedBookIds
+                    && ! $rankedBooks->contains(fn (Book $book): bool => $book->is($eleventhBook));
+            });
     }
 
     public function test_ランキング対象書籍がない場合は空状態メッセージが表示される(): void

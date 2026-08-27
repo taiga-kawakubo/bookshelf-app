@@ -10,23 +10,25 @@ use Illuminate\Console\Command;
 class UpdateOverdueReadingPlans extends Command
 {
     /**
-     * The name and signature of the console command.
+     * コマンド名とシグネチャ
      *
      * @var string
      */
     protected $signature = 'app:update-overdue-reading-plans';
 
     /**
-     * The console command description.
+     * コマンドの説明
      *
      * @var string
      */
     protected $description = '期限が過ぎた読書計画を進行中から期限超過に変更';
 
     /**
-     * Execute the console command.
+     * 期日を過ぎた進行中の読書計画を期限超過に更新する
+     *
+     * @return int コマンドの終了ステータス
      */
-    public function handle()
+    public function handle(): int
     {
         $today = Carbon::today();
         ReadingPlan::where('status', ReadingPlanStatus::InProgress->value)
@@ -34,5 +36,7 @@ class UpdateOverdueReadingPlans extends Command
             ->update([
                 'status' => ReadingPlanStatus::Overdue->value,
             ]);
+
+        return Command::SUCCESS;
     }
 }

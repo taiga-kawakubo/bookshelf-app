@@ -48,9 +48,10 @@ class BookIndexTest extends TestCase
         $response->assertSeeText($book->title);
         $response->assertSeeText($book->author);
 
-        foreach ($genres as $genre) {
-            $response->assertSeeText($genre->name);
-        }
+        $genres
+            ->each(function (Genre $genre) use ($response): void {
+                $response->assertSeeText($genre->name);
+            });
     }
 
     public function test_キーワードがタイトルに一致する書籍を表示する(): void

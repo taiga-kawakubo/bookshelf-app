@@ -22,6 +22,11 @@ use Illuminate\Support\Facades\Route;
 Route::get('/books', [BookController::class, 'index'])
     ->name('books.index');
 
+// 書籍詳細画面の表示
+Route::get('/books/{book}', [BookController::class, 'show'])
+    ->whereNumber('book')
+    ->name('books.show');
+
 // ランキング画面の表示
 Route::get('/ranking', [RankingController::class, 'index'])
     ->name('ranking.index');
@@ -166,14 +171,3 @@ Route::middleware('auth')->group(function () {
     Route::get('/books/isbn/{isbn}', [IsbnLookupController::class, 'show'])
         ->name('books.isbn.show');
 });
-
-/*
-|--------------------------------------------------------------------------
-| 可変パラメータを持つRouteは固定Routeより後に定義
-|--------------------------------------------------------------------------
-*/
-
-// 書籍詳細画面の表示
-Route::get('/books/{book}', [BookController::class, 'show'])
-    ->whereNumber('book')
-    ->name('books.show');

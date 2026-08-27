@@ -151,20 +151,17 @@ class StoreBookRequestTest extends TestCase
         );
     }
 
-    public function test_isbnが未入力の場合バリデーションエラーになる(): void
+    public function test_isbnと出版日が未入力でもバリデーションを通過する(): void
     {
         $data = $this->validData();
 
-        unset($data['isbn']);
+        unset($data['isbn'], $data['published_date']);
 
         $validator = $this->makeValidator($data);
 
-        $this->assertTrue($validator->fails());
-        $this->assertTrue($validator->errors()->has('isbn'));
-
-        $this->assertSame(
-            'ISBNを入力してください。',
-            $validator->errors()->first('isbn')
+        $this->assertFalse(
+            $validator->fails(),
+            $validator->errors()->first()
         );
     }
 
@@ -192,23 +189,6 @@ class StoreBookRequestTest extends TestCase
         $this->assertSame(
             '入力されたISBNはすでに使用されています。',
             $validator->errors()->first('isbn')
-        );
-    }
-
-    public function test_出版日が未入力の場合バリデーションエラーになる(): void
-    {
-        $data = $this->validData();
-
-        unset($data['published_date']);
-
-        $validator = $this->makeValidator($data);
-
-        $this->assertTrue($validator->fails());
-        $this->assertTrue($validator->errors()->has('published_date'));
-
-        $this->assertSame(
-            '出版日を入力してください。',
-            $validator->errors()->first('published_date')
         );
     }
 

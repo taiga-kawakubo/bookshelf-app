@@ -19,14 +19,16 @@ use Illuminate\Support\Facades\DB;
 class BookController extends Controller
 {
     /**
-     * 書籍一覧を取得
+     * 検索・絞り込み・並び替え条件に応じて書籍一覧を取得する。
+     *
+     * @param  IndexBookRequest  $request  書籍一覧の検索条件
+     * @return AnonymousResourceCollection 書籍一覧のAPIレスポンス
      */
     public function index(IndexBookRequest $request): AnonymousResourceCollection
     {
         $query = Book::query()
             ->with('genres')
-            ->withAvg('reviews', 'rating')
-            ->withCount('reviews');
+            ->withAvg('reviews', 'rating');
 
         $validated = $request->validated();
 
@@ -85,7 +87,10 @@ class BookController extends Controller
     }
 
     /**
-     * 書籍を登録
+     * 認証ユーザーを登録者として書籍を登録する。
+     *
+     * @param  StoreBookRequest  $request  書籍登録リクエスト
+     * @return JsonResponse 登録した書籍情報のAPIレスポンス
      */
     public function store(StoreBookRequest $request): JsonResponse
     {
@@ -111,7 +116,10 @@ class BookController extends Controller
     }
 
     /**
-     * 書籍詳細を取得
+     * 指定された書籍の詳細情報を取得する。
+     *
+     * @param  Book  $book  詳細を取得する書籍
+     * @return BookShowResource 書籍詳細のAPIレスポンス
      */
     public function show(Book $book): BookShowResource
     {
@@ -129,7 +137,11 @@ class BookController extends Controller
     }
 
     /**
-     * 書籍を更新
+     * 指定された書籍情報とジャンル紐付けを更新する。
+     *
+     * @param  UpdateBookRequest  $request  書籍更新リクエスト
+     * @param  Book  $book  更新対象の書籍
+     * @return BookStoreUpdateResource 更新した書籍情報のAPIレスポンス
      */
     public function update(UpdateBookRequest $request, Book $book): BookStoreUpdateResource
     {
@@ -152,7 +164,10 @@ class BookController extends Controller
     }
 
     /**
-     * 書籍の削除
+     * 指定された書籍を削除する。
+     *
+     * @param  Book  $book  削除対象の書籍
+     * @return JsonResponse 空のAPIレスポンス
      */
     public function destroy(Book $book): JsonResponse
     {

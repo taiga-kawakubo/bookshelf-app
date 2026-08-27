@@ -2,26 +2,30 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\IsbnLookupRequest;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Http;
 
 class IsbnLookupController extends Controller
 {
     /**
-     * ISBNから書籍情報を取得
+     * ISBNからGoogle Books APIを使って書籍情報を取得する
+     *
+     * @param  IsbnLookupRequest  $request  ISBN検索リクエスト
+     * @return JsonResponse 書籍情報またはエラーメッセージのJSONレスポンス
      */
-    public function show(string $isbn): JsonResponse
+    public function show(IsbnLookupRequest $request): JsonResponse
     {
-        if (! preg_match('/^\d{13}$/', $isbn)) {
-            return response()->json([
-                'error' => 'ISBNは13桁で入力してください。',
-            ], 422);
-        }
-        $response = Http::get('https://www.googleapis.com/books/v1/volumes', [
-            'q' => 'isbn:'.$isbn,
-            'key' => config('services.google_books.api_key'),
-            'maxResults' => 1,
-        ]);
+        $isbn = $request->validated('isbn');
+
+        $response = Http::get(
+            config('services.google_books.api_url'),
+            [
+                'q' => 'isbn:'.$isbn,
+                'key' => config('services.google_books.api_key'),
+                'maxResults' => 1,
+            ]
+        );
 
         if ($response->failed()) {
             return response()->json([

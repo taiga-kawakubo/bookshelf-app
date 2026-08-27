@@ -77,22 +77,21 @@ class IndexBookRequestTest extends TestCase
 
     public function test_正しいソートを選択した場合はバリデーションを通過する(): void
     {
-        $validSorts = [
+        $validSorts = collect([
             'newest',
             'oldest',
             'rating',
             'title',
-        ];
+        ]);
 
-        foreach ($validSorts as $sort) {
-            $validator = $this->makeValidator(
-                [
+        $validSorts
+            ->each(function (string $sort): void {
+                $validator = $this->makeValidator([
                     'sort' => $sort,
-                ]
-            );
+                ]);
 
-            $this->assertFalse($validator->fails());
-        }
+                $this->assertFalse($validator->fails());
+            });
     }
 
     public function test_キーワードが文字列でない場合はバリデーションエラーになる(): void

@@ -125,10 +125,14 @@ class BookSeeder extends Seeder
             ],
         ];
 
-        collect($books)->each(function (array $bookData, int $index) use ($users) {
+        $baseCreatedAt = now();
+
+        collect($books)->each(function (array $bookData, int $index) use ($users, $baseCreatedAt) {
             $genreNames = collect($bookData['genres']);
 
             $owner = $users->values()->get($index % $users->count());
+
+            $createdAt = $baseCreatedAt->copy()->subDays($index);
 
             $book = Book::firstOrCreate(
                 [
@@ -141,6 +145,8 @@ class BookSeeder extends Seeder
                     'published_date' => $bookData['published_date'],
                     'description' => $bookData['description'],
                     'image_url' => $bookData['image_url'],
+                    'created_at' => $createdAt,
+                    'updated_at' => $createdAt,
                 ]
             );
 

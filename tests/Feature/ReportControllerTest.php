@@ -206,8 +206,6 @@ class ReportControllerTest extends TestCase
         $this->assertSame(3.0, $novelRating['average_rating']);
     }
 
-
-
     public function test_読書データがない場合も画面が表示される(): void
     {
         $user = User::factory()->create();
@@ -325,7 +323,7 @@ class ReportControllerTest extends TestCase
         $response->assertDontSeeText($books->last()->title);
     }
 
-    public function test_ジャンル別評価傾向TOP5は平均評価件数ジャンル名の順で表示される(): void
+    public function test_ジャンル別評価傾向_top5は平均評価件数ジャンル名の順で表示される(): void
     {
         $bookOwnerUser = User::factory()->create();
         $reviewUser = User::factory()->create();
@@ -354,8 +352,7 @@ class ReportControllerTest extends TestCase
             'name' => '除外ジャンル',
         ]);
 
-        $createReviewedBook = function (Genre $genre, int $rating, string $title) use ($bookOwnerUser, $reviewUser): void
-        {
+        $createReviewedBook = function (Genre $genre, int $rating, string $title) use ($bookOwnerUser, $reviewUser): void {
             $book = Book::factory()->create([
                 'user_id' => $bookOwnerUser->id,
                 'title' => $title,
@@ -412,7 +409,6 @@ class ReportControllerTest extends TestCase
         );
     }
 
-
     public function test_レビューがない書籍は除外される(): void
     {
         $user = User::factory()->create();
@@ -464,5 +460,4 @@ class ReportControllerTest extends TestCase
 
         $response->assertRedirect(route('login'));
     }
-    
 }

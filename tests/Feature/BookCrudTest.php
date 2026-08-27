@@ -7,6 +7,7 @@ use App\Models\Genre;
 use App\Models\User;
 use Database\Seeders\GenreSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Tests\TestCase;
 
 class BookCrudTest extends TestCase
@@ -49,6 +50,118 @@ class BookCrudTest extends TestCase
 
     /*
     |--------------------------------------------------------------------------
+    | 書籍詳細
+    |--------------------------------------------------------------------------
+    */
+
+    public function test_書籍詳細画面のレビューが10件の場合は1ページ目に10件すべて表示される(): void
+    {
+        $bookOwner = User::factory()->create();
+
+        $reviewers = User::factory()
+            ->count(10)
+            ->create();
+
+        $book = Book::factory()->create([
+            'user_id' => $bookOwner->id,
+        ]);
+
+        $book->genres()->attach($this->genre->id);
+
+        $reviewers
+            ->each(function (User $reviewer, int $index) use ($book): void {
+                $book->reviews()->create([
+                    'user_id' => $reviewer->id,
+                    'rating' => 5,
+                    'comment' => 'レビュー'.($index + 1),
+                ]);
+            });
+
+        $response = $this->get(route('books.show', $book));
+
+        $response->assertOk();
+
+        $reviews = $response->viewData('reviews');
+
+        $this->assertInstanceOf(
+            LengthAwarePaginator::class,
+            $reviews
+        );
+
+        $this->assertCount(10, $reviews);
+        $this->assertSame(10, $reviews->total());
+        $this->assertSame(10, $reviews->perPage());
+        $this->assertSame(1, $reviews->currentPage());
+        $this->assertSame(1, $reviews->lastPage());
+    }
+
+    public function test_書籍詳細画面のレビューが11件の場合は10件ごとにページネーションされる(): void
+    {
+        $bookOwner = User::factory()->create();
+
+        $reviewers = User::factory()
+            ->count(11)
+            ->create();
+
+        $book = Book::factory()->create([
+            'user_id' => $bookOwner->id,
+        ]);
+
+        $book->genres()->attach($this->genre->id);
+
+        $reviewers
+            ->each(function (User $reviewer, int $index) use ($book): void {
+                $book->reviews()->create([
+                    'user_id' => $reviewer->id,
+                    'rating' => 5,
+                    'comment' => 'レビュー'.($index + 1),
+                ]);
+            });
+
+        $firstPageResponse = $this->get(
+            route('books.show', $book)
+        );
+
+        $firstPageResponse->assertOk();
+
+        $firstPageReviews = $firstPageResponse->viewData('reviews');
+
+        $this->assertInstanceOf(
+            LengthAwarePaginator::class,
+            $firstPageReviews
+        );
+
+        $this->assertCount(10, $firstPageReviews);
+        $this->assertSame(11, $firstPageReviews->total());
+        $this->assertSame(10, $firstPageReviews->perPage());
+        $this->assertSame(1, $firstPageReviews->currentPage());
+        $this->assertSame(2, $firstPageReviews->lastPage());
+
+        $secondPageResponse = $this->get(
+            route('books.show', [
+                'book' => $book,
+                'review_page' => 2,
+            ])
+        );
+
+        $secondPageResponse->assertOk();
+
+        $secondPageReviews = $secondPageResponse->viewData('reviews');
+
+        $this->assertInstanceOf(
+            LengthAwarePaginator::class,
+            $secondPageReviews
+        );
+
+        $this->assertCount(1, $secondPageReviews);
+        $this->assertSame(11, $secondPageReviews->total());
+        $this->assertSame(10, $secondPageReviews->perPage());
+        $this->assertSame(2, $secondPageReviews->currentPage());
+        $this->assertSame(2, $secondPageReviews->lastPage());
+    }
+
+    /*
+    |--------------------------------------------------------------------------
     | 書籍登録画面
     |--------------------------------------------------------------------------
     */
@@ -73,9 +186,11 @@ class BookCrudTest extends TestCase
         $response->assertSee('name="image_url"', false);
         $response->assertSee('name="genres[]"', false);
 
-        foreach (Genre::query()->get() as $genre) {
-            $response->assertSeeText($genre->name);
-        }
+        Genre::query()
+            ->get()
+            ->each(function (Genre $genre) use ($response): void {
+                $response->assertSeeText($genre->name);
+            });
     }
 
     public function test_未認証ユーザーは書籍登録画面へアクセスできない(): void

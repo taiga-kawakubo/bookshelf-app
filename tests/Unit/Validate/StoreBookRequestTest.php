@@ -80,26 +80,25 @@ class StoreBookRequestTest extends TestCase
 
     public function test_必須項目が送信されていない場合はバリデーションエラーになる(): void
     {
-        $requiredFields = [
+        $requiredFields = collect([
             'title',
             'author',
-            'isbn',
-            'published_date',
             'genres',
-        ];
+        ]);
 
-        foreach ($requiredFields as $field) {
-            $data = $this->validData();
+        $requiredFields
+            ->each(function (string $field): void {
+                $data = $this->validData();
 
-            unset($data[$field]);
+                unset($data[$field]);
 
-            $validator = $this->makeValidator($data);
+                $validator = $this->makeValidator($data);
 
-            $this->assertTrue($validator->fails());
-            $this->assertTrue(
-                $validator->errors()->has($field)
-            );
-        }
+                $this->assertTrue($validator->fails());
+                $this->assertTrue(
+                    $validator->errors()->has($field)
+                );
+            });
     }
 
     public function test_タイトルが文字列でない場合はバリデーションエラーになる(): void
@@ -354,23 +353,24 @@ class StoreBookRequestTest extends TestCase
 
     public function test_isbnが13桁でない場合はバリデーションエラーになる(): void
     {
-        $invalidIsbns = [
+        $invalidIsbns = collect([
             str_repeat('1', 12),
             str_repeat('1', 14),
-        ];
+        ]);
 
-        foreach ($invalidIsbns as $isbn) {
-            $validator = $this->makeValidator(
-                $this->validData([
-                    'isbn' => $isbn,
-                ])
-            );
+        $invalidIsbns
+            ->each(function (string $isbn): void {
+                $validator = $this->makeValidator(
+                    $this->validData([
+                        'isbn' => $isbn,
+                    ])
+                );
 
-            $this->assertTrue($validator->fails());
-            $this->assertTrue(
-                $validator->errors()->has('isbn')
-            );
-        }
+                $this->assertTrue($validator->fails());
+                $this->assertTrue(
+                    $validator->errors()->has('isbn')
+                );
+            });
     }
 
     public function test_説明が2000文字の場合はバリデーションを通過する(): void

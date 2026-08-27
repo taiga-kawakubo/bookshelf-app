@@ -11,7 +11,7 @@ class IsbnLookupControllerTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_認証済みユーザーはISBNから書籍情報を取得できる(): void
+    public function test_認証済みユーザーはisbnから書籍情報を取得できる(): void
     {
         $user = User::factory()->create();
         $isbn = '9781234567890';
@@ -58,7 +58,7 @@ class IsbnLookupControllerTest extends TestCase
         });
     }
 
-    public function test_13桁以外のISBNはバリデーションエラーを返す(): void
+    public function test_13桁以外のisbnはバリデーションエラーを返す(): void
     {
         $user = User::factory()->create();
 
@@ -76,7 +76,7 @@ class IsbnLookupControllerTest extends TestCase
         Http::assertNothingSent();
     }
 
-    public function test_外部APIが失敗した場合は502を返す(): void
+    public function test_外部apiが失敗した場合は502を返す(): void
     {
         $user = User::factory()->create();
         $isbn = '9781234567890';
@@ -95,7 +95,7 @@ class IsbnLookupControllerTest extends TestCase
         ]);
     }
 
-    public function test_外部APIに書籍がない場合は404を返す(): void
+    public function test_外部apiに書籍がない場合は404を返す(): void
     {
         $user = User::factory()->create();
         $isbn = '9781234567890';
@@ -146,7 +146,7 @@ class IsbnLookupControllerTest extends TestCase
         ]);
     }
 
-    public function test_未認証ユーザーはISBN検索を利用できない(): void
+    public function test_未認証ユーザーはisbn検索を利用できない(): void
     {
         $response = $this->get(
             route('books.isbn.show', ['isbn' => '9781234567890'])

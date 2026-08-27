@@ -9,11 +9,12 @@ use App\Notifications\ReadingPlanReminderNotification;
 use Illuminate\Database\Seeder;
 use Illuminate\Notifications\DatabaseNotification;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Notification;
 
 class NotificationSeeder extends Seeder
 {
     /**
-     * Run the database seeds.
+     * 通知一覧確認用の通知データを作成する。
      */
     public function run(): void
     {
@@ -93,8 +94,13 @@ class NotificationSeeder extends Seeder
         $notification = $this->findNotification($user, $readingPlan, $timing);
 
         if ($notification === null) {
-            $user->notify($reminder);
-            $notification = $this->findNotification($user, $readingPlan, $timing);
+            Notification::send($user, $reminder);
+
+            $notification = $this->findNotification(
+                $user,
+                $readingPlan,
+                $timing
+            );
         }
 
         if ($notification !== null) {

@@ -11,20 +11,25 @@ use Illuminate\View\View;
 class GenreController extends Controller
 {
     /**
-     * ジャンル一覧の表示
+     * 書籍数を含めたジャンル一覧を表示する。
+     *
+     * @return View ジャンル一覧画面
      */
     public function index(): View
     {
         $genres = Genre::query()
             ->withCount('books')
             ->orderBy('id')
-            ->get();
+            ->paginate(10)
+            ->withQueryString();
 
         return view('genres.index', compact('genres'));
     }
 
     /**
-     * ジャンルの作成画面の表示
+     * ジャンル作成画面を表示する。
+     *
+     * @return View ジャンル作成画面
      */
     public function create(): View
     {
@@ -32,11 +37,15 @@ class GenreController extends Controller
     }
 
     /**
-     * ジャンルの登録
+     * ジャンルを登録する。
+     *
+     * @param  StoreGenreRequest  $request  ジャンル登録リクエスト
+     * @return RedirectResponse ジャンル一覧画面へのリダイレクト
      */
     public function store(StoreGenreRequest $request): RedirectResponse
     {
         $validated = $request->validated();
+
         Genre::create([
             'name' => $validated['name'],
         ]);
@@ -47,7 +56,10 @@ class GenreController extends Controller
     }
 
     /**
-     * ジャンルの詳細画面の表示
+     * 指定されたジャンルに紐づく書籍一覧を表示する。
+     *
+     * @param  Genre  $genre  表示対象のジャンル
+     * @return View ジャンル詳細画面
      */
     public function show(Genre $genre): View
     {
@@ -59,7 +71,10 @@ class GenreController extends Controller
     }
 
     /**
-     * ジャンルの編集画面の表示
+     * 指定されたジャンルの編集画面を表示する。
+     *
+     * @param  Genre  $genre  編集対象のジャンル
+     * @return View ジャンル編集画面
      */
     public function edit(Genre $genre): View
     {
@@ -67,11 +82,16 @@ class GenreController extends Controller
     }
 
     /**
-     * ジャンルの更新
+     * 指定されたジャンルを更新する。
+     *
+     * @param  UpdateGenreRequest  $request  ジャンル更新リクエスト
+     * @param  Genre  $genre  更新対象のジャンル
+     * @return RedirectResponse ジャンル一覧画面へのリダイレクト
      */
     public function update(UpdateGenreRequest $request, Genre $genre): RedirectResponse
     {
         $validated = $request->validated();
+
         $genre->update([
             'name' => $validated['name'],
         ]);
@@ -82,7 +102,10 @@ class GenreController extends Controller
     }
 
     /**
-     * ジャンルの削除
+     * 書籍に使用されていないジャンルを削除する。
+     *
+     * @param  Genre  $genre  削除対象のジャンル
+     * @return RedirectResponse ジャンル一覧画面へのリダイレクト
      */
     public function destroy(Genre $genre): RedirectResponse
     {
